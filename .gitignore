@@ -1,9 +1,36 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+uv.lock
+
+# ── Node (前端) ──
+node_modules/
+frontend/dist/
+frontend/.quasar/
+frontend/.vite/
+
+# ── 运行时产物 ──
+backend/log/
+*.log
+
+# ── 编辑器 ──
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
-
-# Local History for Visual Studio Code
+.idea/
 .history/
+
+# ── 系统 ──
+.DS_Store
+Thumbs.db
+
+# ── 开发计划(本地参考,不必提交) ──
+# DEV_PLAN.md 若想公开保留,删掉下面这行
