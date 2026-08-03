@@ -16,6 +16,8 @@ frontend/.vite/
 
 # ── 运行时产物 ──
 backend/log/
+backend/src/log/
+log/
 *.log
 
 # ── 编辑器 ──
