@@ -93,6 +93,10 @@ backend/src/
 
 ## 六、注意点(踩坑记录)
 
+0. **单元测试统一用 `uv run pytest`**(在 `backend/` 目录下执行)。
+   它自动使用项目 venv(`.venv`),依赖与 `uv.lock` 锁定,任何机器 clone 后
+   `uv sync` 即可复现。不要用全局 `pytest`(它是独立环境,读不到项目依赖)。
+
 1. **前端兼容性**:若用 PyQt5(Chromium 87),Quasar 会崩 `Object.hasOwn`。
    3D 版直接用 PyQt6 规避,或在 index.html 加 polyfill(原版已踩过)。
 2. **3D 直线不能表示成单一方程**:原版 `_get_line().equation()` 返回 Ax+By+C=0,
