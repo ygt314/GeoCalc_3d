@@ -21,12 +21,11 @@ TODO(你来补全)：
 
 import re
 
-# TODO(你来补全): 需要的 SymPy 导入（Eq, latex, sympify, LatexPrinter）
-# from sympy import ...
+from sympy import Eq, latex, sympify
+from sympy.printing.latex import LatexPrinter
 
 from .math_obj import MathObj
-# TODO(你来补全): 从 vec_parse_utils 导入 mark_vec_coord（如果 3D 版向量解析还在用）
-# from vec_parse_utils import mark_vec_coord
+from vec_parse_utils import mark_vec_coord
 
 
 def map_vec_coord(expr: str) -> tuple[str, dict[str, str]]:

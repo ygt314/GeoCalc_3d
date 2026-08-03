@@ -16,6 +16,7 @@ dev = [
 [tool.pytest.ini_options]
 # 让 pytest 能 import src 下的模块(把 src 加入 sys.path)
 pythonpath = ["src"]
-testpaths = ["tests"]
+# 收集 backend/tests 和 src/data/tests 两个测试目录
+testpaths = ["tests", "src/data/tests"]
 # 测试文件命名:test_*.py
 python_files = ["test_*.py"]
