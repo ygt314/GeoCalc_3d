@@ -1,0 +1,21 @@
+[project]
+name = "geocalc-3d-backend"
+version = "0.1.0"
+description = "3D几何计算器 后端(学习项目,原型:着火的冰块nya 的 GeometryCalculator)"
+requires-python = ">=3.12"
+dependencies = [
+    "pywebview>=6.0",
+    "sympy>=1.14.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+# 让 pytest 能 import src 下的模块(把 src 加入 sys.path)
+pythonpath = ["src"]
+testpaths = ["tests"]
+# 测试文件命名:test_*.py
+python_files = ["test_*.py"]
