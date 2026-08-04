@@ -67,7 +67,6 @@ class TestToRawLatex:
     这些规则参照 2D 原版,3D 版你需要补充(见 problem.py 注释)
     """
 
-    @pytest.mark.xfail(reason='TODO: 待实现 to_raw_latex', strict=False)
     @pytest.mark.parametrize('expr, expected_substr', [
         # 2D 原版规则
         ('vecAB', r'\overrightarrow{AB}'),          # 向量箭头
@@ -83,7 +82,6 @@ class TestToRawLatex:
         out = to_raw_latex(expr)
         assert expected_substr in out
 
-    @pytest.mark.xfail(reason='TODO: 待实现 to_raw_latex', strict=False)
     def test_deg_to_degree(self):
         """deg → 角度符号"""
         out = to_raw_latex('30deg')
@@ -91,16 +89,50 @@ class TestToRawLatex:
 
 
 class TestMapVecCoord:
-    """向量坐标识别(2D 三元组 → Matrix,3D 三元组)"""
+    """向量坐标识别:mark_vec_coord(括号配对) + map_vec_coord(别名映射) 完整链路"""
 
-    @pytest.mark.xfail(reason='TODO: 待实现 map_vec_coord', strict=False)
     def test_mark_2d_coord(self):
-        """(1, 2) → Matrix([1, 2])"""
-        expr, mapping = map_vec_coord('vec(1, 2)')
-        assert 'Matrix([' in expr
+        """mark_vec_coord:(1, 2) → Matrix([1, 2])"""
+        from vec_parse_utils import mark_vec_coord
+        out = mark_vec_coord('(1, 2)')
+        assert 'Matrix([1, 2])' in out
 
-    @pytest.mark.xfail(reason='TODO: 待实现 map_vec_coord', strict=False)
     def test_mark_3d_coord(self):
-        """(1, 2, 3) → Matrix([1, 2, 3])  ← 3D 新需求"""
-        expr, mapping = map_vec_coord('(1, 2, 3)')
-        assert 'Matrix([' in expr
+        """mark_vec_coord:(1, 2, 3) → Matrix([1, 2, 3])  ← 3D 新需求"""
+        from vec_parse_utils import mark_vec_coord
+        out = mark_vec_coord('(1, 2, 3)')
+        assert 'Matrix([1, 2, 3])' in out
+
+    def test_mark_4d_coord(self):
+        """mark_vec_coord:(1, 2, 3, 4) → 也能处理(算法支持多元组)"""
+        from vec_parse_utils import mark_vec_coord
+        out = mark_vec_coord('(1, 2, 3, 4)')
+        assert 'Matrix([1, 2, 3, 4])' in out
+
+    def test_map_2d_coord(self):
+        """map_vec_coord:Matrix([1,2]) → 别名替换,返回映射表"""
+        expr, mapping = map_vec_coord('Matrix([1, 2])')
+        assert 'Matrix([' not in expr  # 已被别名替换
+        assert len(mapping) == 1
+        assert 'vec' in expr and 'coord' in expr
+
+    def test_map_3d_coord(self):
+        """map_vec_coord:Matrix([1,2,3]) → 别名替换(3D)"""
+        expr, mapping = map_vec_coord('Matrix([1, 2, 3])')
+        assert 'Matrix([' not in expr
+        assert len(mapping) == 1
+
+    def test_full_pipeline_2d(self):
+        """完整链路:(1,2) → mark → map → 表达式里无 Matrix"""
+        from vec_parse_utils import mark_vec_coord
+        marked = mark_vec_coord('(1, 2)')
+        expr, _ = map_vec_coord(marked)
+        assert 'Matrix([' not in expr
+
+    def test_full_pipeline_3d(self):
+        """完整链路:(1,2,3) → mark → map(3D 向量)"""
+        from vec_parse_utils import mark_vec_coord
+        marked = mark_vec_coord('(1, 2, 3)')
+        expr, _ = map_vec_coord(marked)
+        assert 'Matrix([' not in expr
+

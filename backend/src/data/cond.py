@@ -79,10 +79,10 @@ def to_raw_latex(expr: str) -> str:
         (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
         # ABC -> △ABC
         # angcAB_CD -> 所成角(sympify 后 _ 已变成 _{},所以要匹配 _{})
-        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}', r'\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}', r'平面\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}', r'\1 与 平面\2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}', r'平面\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{2})_([A-Z]{2})', r'\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{3})_([A-Z]{2})', r'平面\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{2})_([A-Z]{3})', r'\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{3})_([A-Z]{3})', r'平面\1 与 平面\2 所成角'),
         (r'\b([A-Z]{3})\b', r'\\triangle \1'),
         # angABC -> ∠ABC
         (r'\bang([A-Z]{3})\b', r'\\angle \1'),
