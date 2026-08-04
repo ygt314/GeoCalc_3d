@@ -17,15 +17,15 @@ TODO(你来补全)：
 """
 
 from functools import cache
+# Expr用来类型注释
+from sympy import Expr
 
-# TODO(你来补全): 导入需要的 SymPy 类型（Expr, latex, Point3D）
-# from sympy import ...
+from sympy import Point3D,latex
 
 from .math_obj import MathObj
 
-
 class GCPoint(MathObj):
-    def __init__(self, name: str, x, y, z):
+    def __init__(self, name: str, x: Expr, y: Expr, z: Expr):
         """
         几何计算器中的点
         :param name: 点名称（一个大写字母）
@@ -34,15 +34,14 @@ class GCPoint(MathObj):
         :param z: 竖坐标  ← 3D 新增
         """
         super().__init__(name)
-        # TODO(你来补全): 存坐标并创建 Point3D
-        # self.x = x
-        # self.y = y
-        # self.z = z
-        # self.sp_point = Point3D(x, y, z)
-        raise NotImplementedError('TODO: 实现 GCPoint.__init__')
+        # 存坐标并创建 Point3D
+        self.x = x
+        self.y = y
+        self.z = z
+        self.sp_point = Point3D(x, y, z)
 
     @cache
     def get_latex(self) -> str:
         """点的 LaTeX 展示：A \\left( x, y, z \\right)"""
-        # TODO(你来补全): 参照 2D 原版，输出三元坐标
-        raise NotImplementedError('TODO: 实现 get_latex')
+        # 参照 2D 原版，输出三元坐标
+        return fr'{self.id} \left( {latex(self.x)}, {latex(self.y)}, {latex(self.z)} \right)'
