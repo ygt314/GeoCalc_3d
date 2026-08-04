@@ -9,14 +9,6 @@ to_raw_latex 是字符串美化器：把用户输入表达式变成漂亮的 LaT
   - _eval_str_expr: 人话 → SymPy 代码（机器可执行）
   - to_raw_latex:   人话 → LaTeX（人可读）
   两者各自维护一套正则规则，互相独立（2D 原版就是这样设计的）。
-
-TODO(你来补全)：
-  1. map_vec_coord / to_raw_latex 抄 2D 原版（注意 3D 向量是三元组）
-  2. 3D 新增的 DSL 记号在这里加美化规则，例如：
-     - VABCD → V_{ABCD}（四面体体积）
-     - nABC → \\vec{n}_{ABC}（平面法向量）
-     - 点面距、线面角等（按你的 DSL 设计）
-  3. Cond 类本身和 2D 一样，不用改（raw_latex 做 id，eqs 存方程）
 """
 
 import re
@@ -35,27 +27,92 @@ def map_vec_coord(expr: str) -> tuple[str, dict[str, str]]:
     :param expr: 原始字符串表达式
     :return: (替换后的表达式, 别名→LaTeX 映射表)
     """
-    # TODO(你来补全): 抄 2D 原版实现（逻辑与维度无关，Matrix([x,y]) 变 Matrix([x,y,z]) 即可）
-    raise NotImplementedError('TODO: 实现 map_vec_coord')
+    mapping = {}
+    while True:
+        left_index = expr.find('Matrix([')
+        if left_index != -1:
+            right_index = expr.find('])') + 2
+            vec_coord = expr[left_index:right_index]
+            alias = f'vec{hash(vec_coord) ** 2}coord'
+            expr = expr.replace(vec_coord, alias)
+            mapping[alias] = latex(sympify(vec_coord, evaluate=False), mul_symbol='dot')
+        else:
+            return expr, mapping
 
 
 def to_raw_latex(expr: str) -> str:
     """
     生成用户原始输入的表达式的 LaTeX
     只能是单个表达式
+    2D 已有的规则：
+    vecAB → \\overrightarrow{AB}
+    ABC → \\triangle ABC
+    angABC → \\angle ABC
+    xA → x_A
+    k|b规则已丢弃，因为立体几何无法定义斜率截距
+    StABC -> S△ABC 改为叉积计算|AB \\cross BC|/2
+    dAtBC → d_{A 到 BC} = |AB \\cross BC|/|BC|
+    3D 新规则：
+    nABC 法向量 n_{ABC} = AB \\cross BC
+    angvABCD 向量夹角 <AB,CD>
+    angrABCD 二面角 ∠A-BC-D
+    angcAB_CD 所成角 AB与CD
+    dAtpBCD → d_{A 到 平面BCD} = |n \\dot AB|/|n|
+    vABCD 四面体体积 V_{A-BCD} = |AB \\dot (BC \\cross CD)|/6
     """
-    # TODO(你来补全): 抄 2D 原版，并补充 3D 新记号的美化规则。
-    # 2D 已有的规则示例：
-    #   vecAB → \\overrightarrow{AB}
-    #   ABC → \\triangle ABC
-    #   angABC → \\angle ABC
-    #   xA → x_A
-    #   dAtBC → d_{A 到 BC}
-    raise NotImplementedError('TODO: 实现 to_raw_latex')
+    expr = (mark_vec_coord(expr)
+                .replace('deg', '* gcdeg')  # SymPy 内有个函数就叫 ``deg``，故在此做区分
+                .replace('cross', '×')
+                .replace('dot', '*'))
+
+    expr, mapping = map_vec_coord(expr)
+
+    expr = latex(sympify(expr, evaluate=False), mul_symbol='dot')
+
+    for alias, vec_coord_latex in mapping.items():
+        expr = expr.replace(alias, vec_coord_latex)
+
+    rules = [
+        # ·gcdeg -> °
+        (r'\\cdot\s+gcdeg', r'^{\\circ}'),
+        # vecAB -> \overrightarrow{AB}
+        (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
+        # ABC -> △ABC
+        # angcAB_CD -> 所成角(sympify 后 _ 已变成 _{},所以要匹配 _{})
+        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}', r'\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}', r'平面\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}', r'\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}', r'平面\1 与 平面\2 所成角'),
+        (r'\b([A-Z]{3})\b', r'\\triangle \1'),
+        # angABC -> ∠ABC
+        (r'\bang([A-Z]{3})\b', r'\\angle \1'),
+        # 删除多余点号
+        (r'(?<=[0-9a-z])\s*\\cdot\s*(?=[a-zA-Z]|\\overrightarrow)', r' '),
+        # StABC -> S△ABC
+        (r'\bSt([A-Z]{3})\b', r'S_{\\triangle \1}'),
+        # xA -> x_A
+        (r'\b(x|y)([A-Z])\b', r'\1_\2'),
+        # dAtBC -> d_{A 到 BC}
+        (r'\bd([A-Z])t([A-Z]{2})\b', r'd_{\1 到 \2}'),
+        # nABC -> 平面法向量
+        (r'\bn([A-Z]{3})\b', r'\\overrightarrow{n_{平面\1}}'),
+        # angvABCD -> 向量夹角 <AB, CD>
+        (r'\bangv([A-Z]{2})([A-Z]{2})\b', r'<\\overrightarrow{\1}, \\overrightarrow{\2}>'),
+        # angrABCD -> 二面角 ∠A-BC-D
+        (r'\bangr([A-Z])([A-Z]{2})([A-Z])\b', r'\\angle \1-\2-\3'),
+        # dAtpBCD -> 点到平面距离
+        (r'\bd([A-Z])tp([A-Z]{3})\b', r'd_{\1 到 平面\2}'),
+        # vABCD -> 四面体体积
+        (r'\bv([A-Z])([A-Z]{3})\b', r'V_{四面体\1-\2}')
+    ]
+    for pattern, repl in rules:
+        expr = re.sub(pattern, repl, expr)
+
+    return expr
 
 
 class Cond(MathObj):
-    def __init__(self, raw_latex: str, eqs: list):
+    def __init__(self, raw_latex: str, eqs: list[Eq]):
         """
         一个条件
         :param raw_latex: 用户原始输入的 LaTeX 形式（同时用作本对象的 id）
