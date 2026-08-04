@@ -1,7 +1,7 @@
 # 3D几何计算器
 
 #### 介绍
-这是一个学习项目，它的原型是**着火的冰块nya**的几何计算器项目。这个项目的目的是暴力计算立体几何。
+这是一个学习项目，它的原型是[着火的冰块nya](https://b23.tv/IstwV1E)的几何计算器项目 [GeometryCalculator](https://github.com/zhdbk3/GeometryCalculator)(GPL-3.0)。这个项目的目的也类似，暴力计算立体几何。
 
 #### 软件架构
 软件架构说明
