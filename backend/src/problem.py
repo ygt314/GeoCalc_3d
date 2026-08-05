@@ -73,14 +73,18 @@ class AddCond(ABC):
     def __call__(self, func: Callable[['Problem', str, str], list[Eq]]):
         def wrapper(problem: 'Problem', *args) -> None | Never:
             raw_latex = self.get_raw_latex(*args)
-            # TODO(你来补全): 抄 2D 原版的 AddCond.__call__ 实现
-            # 关键逻辑：
-            #   1. 对每个方程 simplify
-            #   2. 恒假(BooleanFalse) → raise ValueError('该条件不可能成立！')
-            #   3. 恒真(BooleanTrue) → 跳过（过滤掉）
-            #   4. 全被过滤 → raise ValueError('该条件一定成立，不需要添加')
-            #   5. problem.add_cond(Cond(raw_latex, eqs))
-            raise NotImplementedError('TODO: 实现 AddCond.__call__')
+            # 化简方程（组）并过滤 True
+            eqs = []
+            for eq in func(problem, *args):
+                eq = simplify(eq)
+                if isinstance(eq, BooleanFalse):
+                    raise ValueError('该条件不可能成立！')
+                if not isinstance(eq, BooleanTrue):
+                    eqs.append(eq)
+            if len(eqs) == 0:
+                raise ValueError('该条件一定成立，不需要添加')
+            problem.add_cond(Cond(raw_latex, eqs))
+
         return wrapper
 
 
@@ -211,24 +215,25 @@ class Problem:
         原理：一串正则替换把"人话"变成 Python 代码，然后 eval
 
         2D 版的规则表（你在 3D 版要扩展它）：
-          '^' → '**'                              幂运算
-          'deg' → '* pi / 180'                    角度制转弧度
-          数字 → Integer(n)                       防止 1/2 变小数
-          'dot' → '@ dot @'                       向量点乘（中缀）
-          a-z/希腊字母 → self._get_sp_symbol()    未知数
-          xA/yA → self._get_x_of/y_of('A')        点坐标
-          AB → self._get_distance('AB')           线段长度
-          angABC → self._get_angle('ABC')         角度
-          vecAB → self._get_vec('AB')             向量
-          StABC → self._get_triangle_area('ABC')  三角形面积
-          kAB/bAB → 斜率/截距（3D 删除！改方向向量）
+        '^' → '**'                              幂运算
+        'deg' → '* pi / 180'                    角度制转弧度
+        数字 → Integer(n)                       防止 1/2 变小数
+        'dot' → '@ dot @'                       向量点乘（中缀）
+        a-z/希腊字母 → self._get_sp_symbol()    未知数
+        xA/yA → self._get_x_of/y_of('A')        点坐标，现也支持z
+        AB → self._get_distance('AB')           线段长度
+        angABC → self._get_angle('ABC')         角度
+        vecAB → self._get_vec('AB')             向量
+        StABC → self._get_triangle_area('ABC')  三角形面积
+        kAB/bAB → 斜率/截距（3D 删除！改方向向量）
 
         3D 新增规则（你来设计 DSL）：
-          zA → self._get_z_of('A')                竖坐标
-          VABCD → 四面体体积
-          nABC → 平面法向量
-          dAt(P) → 点面距离
-          planeABC → 平面方程
+        nABC 法向量 n_{ABC} = AB \\cross BC
+        angvABCD 向量夹角 <AB,CD>
+        angrABCD 二面角 ∠A-BC-D
+        angcAB_CD 所成角 AB与CD
+        dAtpBCD → d_{A 到 平面BCD} = |n \\dot AB|/|n|
+        vABCD 四面体体积 V_{A-BCD} = |AB \\dot (BC \\cross CD)|/6
         """
         # TODO(你来补全): 抄 2D 原版 _eval_str_expr 的规则表并扩展 3D 规则
         # 注意 2D 原版最后一行：

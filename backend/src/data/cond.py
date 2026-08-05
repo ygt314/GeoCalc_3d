@@ -14,7 +14,6 @@ to_raw_latex 是字符串美化器：把用户输入表达式变成漂亮的 LaT
 import re
 
 from sympy import Eq, latex, sympify
-from sympy.printing.latex import LatexPrinter
 
 from .math_obj import MathObj
 from vec_parse_utils import mark_vec_coord
@@ -48,7 +47,7 @@ def to_raw_latex(expr: str) -> str:
     vecAB → \\overrightarrow{AB}
     ABC → \\triangle ABC
     angABC → \\angle ABC
-    xA → x_A
+    xA/yA → x_A/y_A zA也支持
     k|b规则已丢弃，因为立体几何无法定义斜率截距
     StABC -> S△ABC 改为叉积计算|AB \\cross BC|/2
     dAtBC → d_{A 到 BC} = |AB \\cross BC|/|BC|
@@ -68,7 +67,8 @@ def to_raw_latex(expr: str) -> str:
     expr, mapping = map_vec_coord(expr)
 
     expr = latex(sympify(expr, evaluate=False), mul_symbol='dot')
-
+    print("[debug]:sympify_latex:")
+    print(expr)
     for alias, vec_coord_latex in mapping.items():
         expr = expr.replace(alias, vec_coord_latex)
 
@@ -77,12 +77,12 @@ def to_raw_latex(expr: str) -> str:
         (r'\\cdot\s+gcdeg', r'^{\\circ}'),
         # vecAB -> \overrightarrow{AB}
         (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
-        # ABC -> △ABC
         # angcAB_CD -> 所成角(sympify 后 _ 已变成 _{},所以要匹配 _{})
-        (r'\bangc([A-Z]{2})_([A-Z]{2})', r'\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{3})_([A-Z]{2})', r'平面\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{2})_([A-Z]{3})', r'\1 与 平面\2 所成角'),
-        (r'\bangc([A-Z]{3})_([A-Z]{3})', r'平面\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}', r'\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}', r'平面\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}', r'\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}', r'平面\1 与 平面\2 所成角'),
+        # ABC -> △ABC
         (r'\b([A-Z]{3})\b', r'\\triangle \1'),
         # angABC -> ∠ABC
         (r'\bang([A-Z]{3})\b', r'\\angle \1'),
@@ -91,7 +91,7 @@ def to_raw_latex(expr: str) -> str:
         # StABC -> S△ABC
         (r'\bSt([A-Z]{3})\b', r'S_{\\triangle \1}'),
         # xA -> x_A
-        (r'\b(x|y)([A-Z])\b', r'\1_\2'),
+        (r'\b(x|y|z)([A-Z])\b', r'\1_\2'),
         # dAtBC -> d_{A 到 BC}
         (r'\bd([A-Z])t([A-Z]{2})\b', r'd_{\1 到 \2}'),
         # nABC -> 平面法向量

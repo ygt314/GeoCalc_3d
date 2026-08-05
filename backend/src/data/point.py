@@ -5,15 +5,6 @@
 比如 x_A, y_A, z_A —— 这些未知数由 Problem.add_point 自动创建）。
 
 SymPy 3D 对应类型：Point3D（在 sympy.geometry.point3d 里，需要导入）。
-
-TODO(你来补全)：
-  1. 导入 Point3D：from sympy import Point3D（注意：sympy.geometry 里是 Point3D）
-  2. __init__ 接收三个坐标 x, y, z，存成 self.x / self.y / self.z
-  3. 创建 self.sp_point = Point3D(x, y, z)（solve 后可用 .distance 等几何方法）
-  4. get_latex 输出三元坐标：A \\left( x, y, z \\right)
-
-提示：2D 版 get_latex 是 f'{self.id} \\left( {latex(self.x)}, {latex(self.y)} \\right)'，
-3D 版多加一个坐标即可。
 """
 
 from functools import cache
