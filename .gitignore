@@ -11,9 +11,11 @@ uv.lock
 
 # ── Node (前端) ──
 node_modules/
+frontend/node_modules/
 frontend/dist/
 frontend/.quasar/
 frontend/.vite/
+*.tsbuildinfo
 
 # ── 运行时产物 ──
 backend/log/

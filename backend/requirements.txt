@@ -1,10 +1,11 @@
 # 3D几何计算器 后端依赖
-# 与 2D 原版相同的两个核心依赖 + Python 版本要求
 pywebview>=6.0
 sympy>=1.14.0
 
-# 注意：pywebview 在 Linux 上需要 GUI 后端才能显示窗口。
-# 2D 原版用的是 PyQt5（QtWebEngine 内核是 Chromium 87，太老，不支持 ES2022 API）。
-# 3D 版建议直接用 PyQt6（Chromium 108+），避免前端 polyfill 的麻烦：
-#   pip install pywebview[qt]  或  pip install PyQt6 pyqt6-qt6-webengine
-# 如果你只写后端逻辑（不跑窗口），pywebview 其实可以不装，但留着方便调试。
+# GUI 后端(与 2D 原版一致:PyQt5 + QtWebEngine,Chromium 87)
+# 注意:Chromium 87 不支持 ES2022 API,前端 index.html 已加 polyfill
+PyQt5==5.15.11
+PyQtWebEngine==5.15.7
+qtpy>=2.4
+
+# 运行需要 DISPLAY 环境变量(WSLg 下:DISPLAY=:0 QT_QPA_PLATFORM=xcb)
