@@ -373,7 +373,11 @@ class Problem:
     # ═══════════════════════════════════════════════════════
 
     def add_symbol(self, name: str, domain_settings: Optional[DomainSettings] = None):
-        """添加并初始化未知数（3D 版不改）"""
+        """添加并初始化未知数（3D 版不改）
+        防重: 同名符号已存在则报错,避免 solve 时 duplicate symbols 崩溃
+        """
+        if name in self.math_objs:
+            raise ValueError(f'未知数 {name} 已存在!')
         self._add_math_obj(GCSymbol(name, domain_settings))
         self.symbol_names.append(name)
 
@@ -638,7 +642,10 @@ class Problem:
         eqs = [Eq(target, self._eval_str_expr(expr))]
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
-        symbols = [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
+        # 去重: 防止重复符号导致 SymPy 报 duplicate symbols given
+        symbols = list(dict.fromkeys(
+            [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]
+        ))
         solutions = solve(eqs, symbols, dict=True)
         
         # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5

@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ionAddOutline } from '@quasar/extras/ionicons-v8';
 import { ref, computed } from 'vue';
-import { isValidNewPointName, isValidLineName } from 'components/add/validityCheck';
+import { isValidNewPointName } from 'components/add/validityCheck';
 import { useDataStore } from 'stores/data';
 
 const dialogOpen = ref(false);
