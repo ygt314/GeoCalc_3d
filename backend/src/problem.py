@@ -635,6 +635,12 @@ class Problem:
         solutions = solve(eqs, symbols, dict=True)
         
         # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-        result = set(simplify(sqrtdenest(s[target])) for s in solutions)
+        # 注意:conditions 不足时 SymPy 可能返回空列表或不含 target 的解,
+        # 这里跳过不含 target 的项(与 2D 原版行为一致:条件不足返回空)
+        result = set(
+            simplify(sqrtdenest(s[target]))
+            for s in solutions
+            if target in s
+        )
         result = [f'{left} = {latex(i)}' for i in result]
         return result
