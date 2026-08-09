@@ -436,7 +436,14 @@ class Problem:
 
             for l in [line1, line2]:
                 if l != '':
-                    eqs.append(self._get_line(l).equation())
+                    eq = self._get_line(l).equation()
+                    # Line3D.equation() 返回 Tuple(两个平面方程联立),2D 是单方程
+                    # 需要逐个解包,否则 solve 会崩(Tuple 无 as_real_imag)
+                    if isinstance(eq, tuple) or hasattr(eq, '__iter__') and not hasattr(eq, 'free_symbols'):
+                        for sub_eq in eq:
+                            eqs.append(Eq(sub_eq, 0))
+                    else:
+                        eqs.append(Eq(eq, 0))
 
             # 求解点坐标并添加
             _ans = solve(eqs, x, y, z, dict=True)[0]
