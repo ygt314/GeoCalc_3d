@@ -44,6 +44,35 @@ class TestAddObjects:
         prob.add_point('A', 't', 't', '0', '', '')
         assert prob.math_objs['A'].x == prob.math_objs['t'].sp_symbol
 
+    def test_add_point_on_line(self, prob):
+        """点在直线上:Line3D.equation() 返回 Tuple,必须正确解包"""
+        prob.add_point('C', '1', '1', '0', '', '')
+        prob.add_point('E', '1', '1', '1', '', '')
+        # P 在 CE 上 + z=1/2 → 3 个约束 → P=(1,1,1/2)
+        prob.add_point('P', 'x', 'y', '1/2', 'CE', '')
+        from sympy import Rational
+        assert prob.math_objs['P'].x == 1
+        assert prob.math_objs['P'].y == 1
+        assert prob.math_objs['P'].z == Rational(1, 2)
+
+    def test_add_point_coord_unknowns(self, prob):
+        """点坐标全设未知数 + 2 直线交点(坐标未知数必须纳入 solve)"""
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', '1', '0', '0', '', '')
+        prob.add_point('C', '0', '0', '0', '', '')
+        prob.add_point('D', '1', '1', '1', '', '')
+        prob.add_point('Q', 'x', 'y', 'z', 'AB', 'CD')  # AB ∩ CD = A
+        assert prob.math_objs['Q'].x == 0
+        assert prob.math_objs['Q'].y == 0
+        assert prob.math_objs['Q'].z == 0
+
+    def test_duplicate_symbol_rejected(self, prob):
+        """重复添加符号应报错(否则 solve 会 duplicate symbols 崩溃)"""
+        prob.add_symbol('a')
+        import pytest
+        with pytest.raises(ValueError):
+            prob.add_symbol('a')
+
 
 class TestGetters:
     """几何访问器"""

@@ -442,15 +442,21 @@ class Problem:
                 if l != '':
                     eq = self._get_line(l).equation()
                     # Line3D.equation() 返回 Tuple(两个平面方程联立),2D 是单方程
-                    # 需要逐个解包,否则 solve 会崩(Tuple 无 as_real_imag)
-                    if isinstance(eq, tuple) or hasattr(eq, '__iter__') and not hasattr(eq, 'free_symbols'):
+                    # 判断: 不是 SymPy 表达式(没有 free_symbols 的是 Tuple/容器)
+                    # 注意: Tuple 也有 free_symbols 属性!要用 Expr 判断
+                    if not isinstance(eq, Expr):
                         for sub_eq in eq:
                             eqs.append(Eq(sub_eq, 0))
                     else:
                         eqs.append(Eq(eq, 0))
 
             # 求解点坐标并添加
-            _ans = solve(eqs, x, y, z, dict=True)[0]
+            # 关键: 把本点新建的坐标未知数(x_A/y_A/z_A)也纳入求解,
+            # 否则它们是自由符号, solve(x,y,z) 会误判欠定
+            solve_symbols = [x, y, z] + [
+                self.math_objs[s].sp_symbol for s in required_by_new_symbols
+            ]
+            _ans = solve(eqs, solve_symbols, dict=True)[0]
             point = GCPoint(name, _ans[x], _ans[y], _ans[z])
             # 反向添加设的未知数对点的依赖，这样在删除点时该点的未知数也会被删除
             point.required_by |= required_by_new_symbols
