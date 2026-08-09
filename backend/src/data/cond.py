@@ -53,11 +53,12 @@ def to_raw_latex(expr: str) -> str:
     dAtBC → d_{A 到 BC} = |AB \\cross BC|/|BC|
     3D 新规则：
     nABC 法向量 n_{ABC} = AB \\cross BC
-    angvABCD 向量夹角 <AB,CD>
-    angrABCD 二面角 ∠A-BC-D
-    angcAB_CD 所成角 AB与CD
+    angvABCD 向量夹角 <AB,CD> [0, pi)
+    angrABCD 二面角 ∠A-BC-D [0, pi)
+    angcAB_CD 所成角 AB与CD [0, pi/2]
     dAtpBCD → d_{A 到 平面BCD} = |n \\dot AB|/|n|
     vABCD 四面体体积 V_{A-BCD} = |AB \\dot (BC \\cross CD)|/6
+    vABC-OPQ -> 三棱台（柱）体积
     """
     expr = (mark_vec_coord(expr)
                 .replace('deg', '* gcdeg')  # SymPy 内有个函数就叫 ``deg``，故在此做区分
@@ -78,10 +79,10 @@ def to_raw_latex(expr: str) -> str:
         # vecAB -> \overrightarrow{AB}
         (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
         # angcAB_CD -> 所成角(sympify 后 _ 已变成 _{},所以要匹配 _{})
-        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}', r'\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}', r'平面\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}', r'\1 与 平面\2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}', r'平面\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}\b', r'\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}\b', r'平面\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}\b', r'\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}\b', r'平面\1 与 平面\2 所成角'),
         # ABC -> △ABC
         (r'\b([A-Z]{3})\b', r'\\triangle \1'),
         # angABC -> ∠ABC
@@ -103,7 +104,9 @@ def to_raw_latex(expr: str) -> str:
         # dAtpBCD -> 点到平面距离
         (r'\bd([A-Z])tp([A-Z]{3})\b', r'd_{\1 到 平面\2}'),
         # vABCD -> 四面体体积
-        (r'\bv([A-Z])([A-Z]{3})\b', r'V_{四面体\1-\2}')
+        (r'\bv([A-Z])([A-Z]{3})\b', r'V_{四面体\1-\2}'),
+        # vABC-OPQ -> 三棱台（柱）体积
+        (r'\bv([A-Z]{3})-([A-Z]{3})\b', r'V_{三棱柱\1-\2}')
     ]
     for pattern, repl in rules:
         expr = re.sub(pattern, repl, expr)
