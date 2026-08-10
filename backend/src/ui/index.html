@@ -1,0 +1,21 @@
+<!doctype html><html><head><title>3D几何计算器 前端</title><meta charset=utf-8><meta name=description content="3D几何计算器的前端，将由 pywebview 运行并与 Python 后端通信。"><meta name=format-detection content="telephone=no"><meta name=msapplication-tap-highlight content=no><meta name=viewport content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width"><script>// Polyfills for legacy QtWebEngine (Chromium 87) — ES2022 APIs used by
+      // Quasar/Vue. Remove once the backend moves to PyQt6 (Chromium 108+).
+      if (!Object.hasOwn) {
+        Object.hasOwn = function (obj, prop) {
+          return Object.prototype.hasOwnProperty.call(obj, prop);
+        };
+      }
+      if (!Array.prototype.at) {
+        Array.prototype.at = function (n) {
+          n = Math.trunc(n) || 0;
+          if (n < 0) n += this.length;
+          if (n < 0 || n >= this.length) return undefined;
+          return this[n];
+        };
+      }</script>  <script type="module" crossorigin src="assets/index-DjdW3a3w.js"></script>
+  <link rel="modulepreload" crossorigin href="assets/runtime-core.esm-bundler-CJOrt7RF.js">
+  <link rel="modulepreload" crossorigin href="assets/runtime-dom.esm-bundler-45tC6tMe.js">
+  <link rel="modulepreload" crossorigin href="assets/create-CWvwGeme.js">
+  <link rel="modulepreload" crossorigin href="assets/wrappers-Dd2sgqS9.js">
+  <link rel="stylesheet" crossorigin href="assets/index-jFXUoct2.css">
+</head><body><div id=q-app></div></body></html>

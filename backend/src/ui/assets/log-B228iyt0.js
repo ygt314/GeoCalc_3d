@@ -1,0 +1,1 @@
+import{t as e}from"./wrappers-Dfvzj6n2.js";var t=e(()=>{let e=console.warn,t=console.error;console.warn=(...t)=>{e.apply(console,t),window.pywebview.api.logger.warning(t)},console.error=(...e)=>{t.apply(console,e),window.pywebview.api.logger.error(e)}});export{t as default};

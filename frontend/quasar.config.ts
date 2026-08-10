@@ -54,6 +54,9 @@ export default defineConfig((ctx) => {
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
       // publicPath: '/',
+      // 正式版由 pywebview 通过 file:// 加载本地 HTML,
+      // 必须用相对路径 './',否则 /assets/... 会指向文件系统根目录
+      publicPath: './',
       // analyze: true,
       // env: {},
       // rawDefine: {}
