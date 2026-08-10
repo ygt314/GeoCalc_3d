@@ -345,21 +345,25 @@ class Problem:
 
     # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
     # 实验性方法(原实现缺 self 且不解析字符串,前端无法调用,已修复)
-    def get_expore(self, f_str: str, sym_str: str = 'x y') -> list:
+    def get_expore(self, expr, sym_str: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
 
         参数:
-            f_str: 目标函数表达式字符串(复用 DSL,如 'x**2 + y**2' 或 'xA**2')
+            expr: 目标函数,可以是字符串(自动用 DSL 解析)或 SymPy 表达式
             sym_str: 参与求解的未知数,用空格分隔(默认 'x y')
         返回:
             可能的极值点列表 [(x1, y1...), (x2, y2...), ...]
+            数值已转为 Python 原生类型(float/int),保证 pywebview JSON 可序列化
         注意:
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
             - 只解多项式方程组,复杂函数可能无解或很慢
         """
-        # 解析函数表达式(复用 DSL:支持 xA 坐标、AB 距离等记号)
-        f = self._eval_str_expr(f_str)
+        # 兼容字符串与 SymPy 表达式两种输入
+        if isinstance(expr, str):
+            f = self._eval_str_expr(expr)  # 字符串 → DSL 解析
+        else:
+            f = expr  # 已是表达式,直接引用(避免重复计算)
         # 定义符号变量(symbols('x y') → 元组, symbols('x') → 单个 Symbol,统一转列表)
         xs = symbols(sym_str, real=True)
         if not isinstance(xs, (tuple, list)):
@@ -373,7 +377,12 @@ class Problem:
         for sol in solutions:
             if sol:
                 xs_val = tuple(sol.get(x_i, x_i) for x_i in xs)  # 若 x 不存在,保留符号 x
-                extrema.append(xs_val)
+                # SymPy 数值(Integer/Zero/Rational/Sqrt 等)不能 JSON 序列化,
+                # 统一转 Python 原生类型;解不出的变量保留符号名(字符串)
+                extrema.append(tuple(
+                    float(v) if v.is_number else str(v)
+                    for v in xs_val
+                ))
         return extrema
     # ═══════════════════════════════════════════════════════
     # 第四部分：添加对象（add_* 系列）
