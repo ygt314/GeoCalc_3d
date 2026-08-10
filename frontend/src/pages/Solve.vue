@@ -3,6 +3,15 @@
     <h1>计算求解</h1>
     <div>请输入要计算的表达式：</div>
     <q-input v-model="expr" dense />
+    <!-- 极值探索变量:用户自行决定,留空则跳过探索 -->
+    <div class="container">
+      <label>极值探索变量(可选)</label>
+      <q-input
+        v-model="exploreSymsInput"
+        dense
+        placeholder="空格分隔,如 t u。留空则不探索"
+      />
+    </div>
     <div class="container">
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
         > 🚀 启动！
@@ -46,7 +55,8 @@ const t2 = ref(0);
 
 const solutions = ref<Array<string>>([]);
 
-// ── 极值点探索(求解后自动) ──
+// ── 极值点探索(求解后自动,变量由用户输入决定) ──
+const exploreSymsInput = ref('');
 const exploreDone = ref(false);
 const exploreSyms = ref('');
 const extrema = ref<Array<Array<number>>>([]);
@@ -70,16 +80,14 @@ function solve() {
         result.push('无解');
       }
       solutions.value = result;
-      // ── 求解后自动进行极值点探索 ──
+      // ── 求解后自动进行极值点探索(仅当用户填了变量) ──
+      const syms = exploreSymsInput.value.trim();
+      if (syms.length === 0) {
+        return; // 用户未指定变量,跳过探索
+      }
       try {
-        // 取当前所有符号作为探索变量
-        const syms = await window.pywebview.api.problem.get_symbol_names();
-        exploreSyms.value = syms.join(' ');
-        if (syms.length === 0) {
-          exploreError.value = '没有可探索的变量(请先添加未知数)';
-          return;
-        }
-        const ext = await window.pywebview.api.problem.get_expore(expr.value, syms.join(' '));
+        exploreSyms.value = syms;
+        const ext = await window.pywebview.api.problem.get_expore(expr.value, syms);
         extrema.value = ext;
         exploreDone.value = true;
       } catch (e) {
