@@ -13,16 +13,16 @@
       />
     </div>
     <div class="container">
-      <!-- ① 求解按钮 -->
+      <!-- ① 求解按钮:求解后若填了变量,自动展示探索结果 -->
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
         > 🚀 求解！
       </q-btn>
-      <!-- ② 极值探索按钮(分步操作,用最近一次求解的结果) -->
+      <!-- ② 探索按钮:手动重新探索(换变量后点击) -->
       <q-btn
         :disable="exploreSymsInput.trim().length === 0 || exploring || !hasSolved"
         color="secondary"
         @click="explore"
-      > 🔍 极值探索
+      > 🔍 重新探索
       </q-btn>
       <q-linear-progress indeterminate v-if="solving || exploring" />
       <div id="duration">用时 {{ duration }}</div>
@@ -82,12 +82,16 @@ function solve() {
   exploreError.value = '';
   window.pywebview.api.problem
     .solve(expr.value)
-    .then((result) => {
+    .then(async (result) => {
       if (result.length === 0) {
         result.push('无解');
       }
       solutions.value = result;
       hasSolved.value = true;  // 求解成功,解锁探索按钮
+      // 若用户填了探索变量,求解后自动展示探索结果
+      if (exploreSymsInput.value.trim().length > 0) {
+        await doExplore();
+      }
     })
     .catch((e) => {
       alert('求解出错 qwq\n' + e);
@@ -98,7 +102,7 @@ function solve() {
 }
 
 // 极值探索:直接使用最近一次求解缓存的后端表达式,无需再传函数
-function explore() {
+async function doExplore() {
   const syms = exploreSymsInput.value.trim();
   if (syms.length === 0) {
     return;
@@ -107,19 +111,21 @@ function explore() {
   exploreDone.value = false;
   exploreError.value = '';
   extrema.value = [];
-  window.pywebview.api.problem
-    .get_expore(syms)
-    .then((result) => {
-      extrema.value = result;
-      exploreSyms.value = syms;
-      exploreDone.value = true;
-    })
-    .catch((e) => {
-      exploreError.value = String(e);
-    })
-    .finally(() => {
-      exploring.value = false;
-    });
+  try {
+    const result = await window.pywebview.api.problem.get_expore(syms);
+    extrema.value = result;
+    exploreSyms.value = syms;
+    exploreDone.value = true;
+  } catch (e) {
+    exploreError.value = String(e);
+  } finally {
+    exploring.value = false;
+  }
+}
+
+// 探索按钮:手动触发(用于换变量后重新探索)
+function explore() {
+  void doExplore();
 }
 
 // 实现计时器
