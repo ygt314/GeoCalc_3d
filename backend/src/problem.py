@@ -122,9 +122,9 @@ class Problem:
         # 用于临时存放正在添加的新对象依赖哪些对象
         self.requirements_tracker: set[MathObj] = set()
 
-        # 最近一次 solve 解析出的 SymPy 表达式缓存(供 get_expore 直接探索,
-        # 避免重复解析;仅存当前计算结果,换表达式即覆盖)
-        self._last_expr: Optional[Expr] = None
+        # 最近一次 solve 解出的目标表达式列表(供 get_expore 探索;
+        # 对"解"探索而非对原始输入表达式,仅存当前结果,换题即覆盖)
+        self._last_exprs: list = []
 
     # ═══════════════════════════════════════════════════════
     # 第一部分：对象管理（抄 2D 原版，基本不改）
@@ -348,7 +348,7 @@ class Problem:
         return simplify(eval(expr))  # 不能直接用sympify，否则会自己造符号
 
     # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
-    # 实验性方法(原实现缺 self 且不解析字符串,前端无法调用,已修复)
+    # 实验性方法
     def get_expore(self, sym_str: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
@@ -359,38 +359,38 @@ class Problem:
             驻点列表,每项为字典 {latex: 展示用 LaTeX, values: [数值...]}
             (全部 JSON 可序列化;数值为 float,解不出的变量保留符号名)
         注意:
-            - 直接使用最近一次 solve() 缓存的计算结果(self._last_expr),
-              无需重复传表达式;先 solve 再 explore
+            - 直接使用最近一次 solve() 解出的目标表达式列表(self._last_exprs),
+              对每个解求偏导;先 solve 再 explore
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
             - 只解多项式方程组,复杂函数可能无解或很慢
             - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
               需要 JSON 序列化,SymPy 对象无法序列化
         """
-        if self._last_expr is None:
+        if not self._last_exprs:
             raise ValueError('还没有计算结果,请先点击"🚀 启动!"求解')
-        f = self._last_expr  # 直接引用缓存的 SymPy 表达式,不重复解析
         # 定义符号变量(symbols('x y') → 元组, symbols('x') → 单个 Symbol,统一转列表)
         xs = symbols(sym_str, real=True)
         if not isinstance(xs, (tuple, list)):
             xs = [xs]
-        # 求偏导并构造方程组
-        eqs = [Eq(diff(f, x_i), 0) for x_i in xs]  # ∂f/∂x = 0
-        # 解方程组
-        solutions = solve(eqs, xs, dict=True)
-        # 提取 (x, y...) 的解
         extrema = []
-        for sol in solutions:
-            if sol:
-                # 数值转 float,解不出的变量保留符号名(字符串)
-                values = tuple(
-                    float(v) if v.is_number else str(v)
-                    for v in (sol.get(x_i, x_i) for x_i in xs)
-                )
-                # LaTeX 展示: (x1, y1, ...)
-                extrema.append({
-                    'latex': latex(tuple(values)),
-                    'values': list(values),
-                })
+        # 对每个解分别求偏导解驻点(解可能有多个,如 ±√2)
+        for f in self._last_exprs:
+            # 求偏导并构造方程组
+            eqs = [Eq(diff(f, x_i), 0) for x_i in xs]  # ∂f/∂x = 0
+            # 解方程组
+            solutions = solve(eqs, xs, dict=True)
+            for sol in solutions:
+                if sol:
+                    # 数值转 float,解不出的变量保留符号名(字符串)
+                    values = tuple(
+                        float(v) if v.is_number else str(v)
+                        for v in (sol.get(x_i, x_i) for x_i in xs)
+                    )
+                    # LaTeX 展示: (x1, y1, ...)
+                    extrema.append({
+                        'latex': latex(tuple(values)),
+                        'values': list(values),
+                    })
         return extrema
     # ═══════════════════════════════════════════════════════
     # 第四部分：添加对象（add_* 系列）
@@ -668,11 +668,8 @@ class Problem:
         """
         left = to_raw_latex(expr)
 
-        # 缓存解析结果,供 get_expore 直接探索(避免重复解析)
-        self._last_expr = self._eval_str_expr(expr)
-
         target = Symbol('target')
-        eqs = [Eq(target, self._last_expr)]
+        eqs = [Eq(target, self._eval_str_expr(expr))]
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
         # 去重: 防止重复符号导致 SymPy 报 duplicate symbols given
@@ -689,5 +686,13 @@ class Problem:
             for s in solutions
             if target in s
         )
+        # 缓存"解"而非原始表达式: 极值探索是对解做偏导,
+        # 不是对输入表达式做(原始表达式可能是距离/坐标的组合)
+        # 注意: 条件不足时 solve 返回空,此时"解"就是原始表达式本身
+        # (用户此时想探索的正是该表达式的极值)
+        if result:
+            self._last_exprs = list(result)
+        else:
+            self._last_exprs = [self._eval_str_expr(expr)]
         result = [f'{left} = {latex(i)}' for i in result]
         return result
