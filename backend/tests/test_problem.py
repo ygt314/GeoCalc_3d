@@ -176,3 +176,28 @@ class TestSolve:
         prob.add_expr_eq('AB', '3')
         result = prob.solve('AC')
         assert any('3' in r for r in result)
+
+
+class TestExplore:
+    """极值点探索"""
+
+    def test_single_var(self, prob):
+        """f(t) = t²-2t+1 的驻点是 t=1"""
+        prob.add_symbol('t')
+        result = prob.get_expore('t**2 - 2*t + 1', 't')
+        assert (1,) in result
+
+    def test_multi_var(self, prob):
+        """f(u,v) = u²+v² 的驻点是 (0,0)"""
+        prob.add_symbol('u')
+        prob.add_symbol('v')
+        result = prob.get_expore('u**2 + v**2', 'u v')
+        assert (0, 0) in result
+
+    def test_dsl_expr(self, prob):
+        """支持 DSL 记号:AB² 关于 t 的驻点(AB 长度最小)"""
+        prob.add_symbol('t')
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', 't', '0', '0', '', '')
+        result = prob.get_expore('AB**2', 't')
+        assert (0,) in result

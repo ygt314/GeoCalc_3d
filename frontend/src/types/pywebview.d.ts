@@ -57,6 +57,10 @@ declare global {
           load_from_file: () => Promise<null>;
 
           solve: (expr: string) => Promise<Array<string>>;
+
+          // 极值点探索: f_str 目标函数(DSL 字符串), sym_str 变量列表(空格分隔)
+          // 返回驻点列表 [[x1,y1...], ...]
+          get_expore: (f_str: string, sym_str: string) => Promise<Array<Array<number>>>;
         };
         logger: {
           warning: (msg) => Promise<void>;
