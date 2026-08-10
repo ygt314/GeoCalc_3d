@@ -5,7 +5,7 @@
     <q-input v-model="expr" dense />
     <div class="container">
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
-        >🚀 启动！
+        > 🚀 启动！
       </q-btn>
       <q-linear-progress indeterminate v-if="solving" />
       <div id="duration">用时 {{ duration }}</div>

@@ -6,7 +6,7 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 未知数名可以是：
 
-- 一个小写英文字母（除 \`x\`, \`y\` 外）
+- 一个小写英文字母（除 \`x\`, \`y\`, \`z\`外）
 - 一个希腊字母的英文拼写（除 \`pi\` 外）
 
 ## 点
@@ -26,6 +26,7 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 |     \`*\`     |    乘    |
 |     \`/\`     |    除    |
 |    \`dot\`    | 向量点乘 |
+|   \`cross\`   | 向量叉乘 |
 | \`^\` 或 \`**\` |    幂    |
 
 注意：乘号不能省略。
@@ -53,7 +54,7 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 ### 访问点坐标
 
-格式：x / y + 点名称
+格式：x / y / z + 点名称
 
 例如：\`xA\` 代表 $x_A$
 
@@ -65,9 +66,21 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 ### 角
 
-格式：ang + 确定角的三个点
+1. ang + 确定角的三个点
 
 例如：\`angABC\` 代表 $\\angle ABC$
+
+2. angv + 两个向量，省略vec
+
+例如：\`angvABCD\` 代表 $< \\overrightarrow{AB} , \\overrightarrow{CD} >$
+
+3. angr + 二面角，省略连词号\`-\`
+
+例如：\`angrABCD\` 代表 $\\angle A-BC-D$
+
+4. angc + 两个线面，不要省略下划线\`_\`
+
+例如：\`angrAB_CD\` 代表 AB 与 CD 所成角，\`angrABC_MN\` 代表 平面ABC 与 MN 所成角
 
 #### 角度制
 
@@ -85,9 +98,15 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 #### 坐标表示的向量
 
-格式：(x 分量, y 分量)
+格式：(x 分量, y 分量, z 分量)
 
-例如：\`(114, 514)\` 代表 $(114, 514)$
+例如：\`(114, 514, 666)\` 代表 $(114, 514, 666)$
+
+#### 法向量
+
+格式：n + 平面
+
+例如：\`nABC\` 代表 $\\overrightarrow{n}_{平面ABC}$
 
 ### 三角形面积
 
@@ -95,32 +114,37 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 例如：\`StABC\` 代表 $S_{\\triangle ABC}$
 
-### 直线的斜率 ($k$) 和截距 ($b$)
+### 四面体体积
 
-格式：k / b + 直线名
+格式：v + 四面体
 
-例如：\`kAB\` 代表直线 $AB$ 的斜率 $k_{AB}$
+例如：\`vABCD\` 代表 $V_{四面体A-BCD}$
 
-注意：你必须保证这条直线不可能是竖直的
+### 点到直线（平面）距离
 
-### 点到直线距离
+格式：d + 点名 + t + 直线（平面）名
 
-格式：d + 点名 + t + 直线名
+例如：\`dAtBC\` 代表点 A 到直线 BC 的距离，记作 $d_{A 到 BC}$，\`dAtBCD\` 代表点 A 到 平面BCD 的距离，记作 $d_{A 到 平面BCD}$
 
-例如：\`dAtBC\` 代表点 A 到直线 BC 的距离，记作 $d_{A 到 BC}$
+**注意!!!**：线线距、线面距、面面距都要转化为点到XXX的距离
 
 ## FAQ
 
 ### 如何表示圆、抛物线等图形？
 
-研究这些图形，本质上是在研究上面的点。你可以把一个点的横纵坐标用一定的关系关联起来，例如 $x_A^2 + y_A^2 = 1$
+研究这些图形，本质上是在研究上面的点。你可以把一个点的坐标用一定的关系关联起来，例如 $x_A^2 + y_A^2 = 1$
 或 $y_A = 11 x_A^2 + 45 x_A + 14$。对于圆，你可以用“到圆心的距离为半径的点”表示圆上的点，用“到圆心的距离为半径的直线”表示切线。
-`,wo=`# 关于 几何计算器 2
+`,wo=`# 关于 3D几何计算器
+
+- Gitee 主仓库：https://gitee.com/ygt314159/GeoCalc_3d
+- 开源许可证：[GNU General Public License v3.0](https://gitee.com/ygt314159/GeoCalc_3d/blob/main/LICENSE)
+- 作者：[pi3-1415926535](https://space.bilibili.com/2020374615)
+
+# 致谢 （2D）几何计算器
 
 - GitHub 仓库：https://github.com/zhdbk3/GeometryCalculator
 - 开源许可证：[GNU General Public License v3.0](https://github.com/zhdbk3/GeometryCalculator/blob/main/LICENSE)
-- 作者：[着火的冰块nya](https://space.bilibili.com/551409211)
-`,To={markdown:{docs:()=>Co,about:()=>wo}},Eo=`# Documentation
+- 作者：[着火的冰块nya](https://space.bilibili.com/551409211)`,To={markdown:{docs:()=>Co,about:()=>wo}},Eo=`# Documentation
 
 ## Unknown
 

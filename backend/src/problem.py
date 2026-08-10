@@ -454,7 +454,7 @@ class Problem:
             # 关键: 把本点新建的坐标未知数(x_A/y_A/z_A)也纳入求解,
             # 否则它们是自由符号, solve(x,y,z) 会误判欠定
             solve_symbols = [x, y, z] + [
-                self.math_objs[s].sp_symbol for s in required_by_new_symbols
+                self.math_objs[s].sp_symbol for s in required_by_new_symbols  # type: ignore
             ]
             _ans = solve(eqs, solve_symbols, dict=True)[0]
             point = GCPoint(name, _ans[x], _ans[y], _ans[z])
@@ -639,7 +639,7 @@ class Problem:
     def solve(self, expr: str) -> list[str]:
         """
         🚀 启动！
-        :param expr: 要求解的目标的字符串表达式（如 AB、angABC、VABCD）
+        :param expr: 要求解的目标的字符串表达式（如 AB、angABC、vABCD）
         :return: 所有可能的解的 LaTeX
         """
         left = to_raw_latex(expr)

@@ -62,6 +62,7 @@ def to_raw_latex(expr: str) -> str:
     """
     expr = (mark_vec_coord(expr)
                 .replace('deg', '* gcdeg')  # SymPy 内有个函数就叫 ``deg``，故在此做区分
+                .replace('_','x') # sympify 后 _ 会变成 _{}
                 .replace('cross', '×')
                 .replace('dot', '*'))
 
@@ -78,11 +79,11 @@ def to_raw_latex(expr: str) -> str:
         (r'\\cdot\s+gcdeg', r'^{\\circ}'),
         # vecAB -> \overrightarrow{AB}
         (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
-        # angcAB_CD -> 所成角(sympify 后 _ 已变成 _{},所以要匹配 _{})
-        (r'\bangc([A-Z]{2})_\{([A-Z]{2})\}\b', r'\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{2})\}\b', r'平面\1 与 \2 所成角'),
-        (r'\bangc([A-Z]{2})_\{([A-Z]{3})\}\b', r'\1 与 平面\2 所成角'),
-        (r'\bangc([A-Z]{3})_\{([A-Z]{3})\}\b', r'平面\1 与 平面\2 所成角'),
+        # angcAB_CD -> 所成角
+        (r'\bangc([A-Z]{2})x([A-Z]{2})\b', r'\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{3})x([A-Z]{2})\b', r'平面\1 与 \2 所成角'),
+        (r'\bangc([A-Z]{2})x([A-Z]{3})\b', r'\1 与 平面\2 所成角'),
+        (r'\bangc([A-Z]{3})x([A-Z]{3})\b', r'平面\1 与 平面\2 所成角'),
         # ABC -> △ABC
         (r'\b([A-Z]{3})\b', r'\\triangle \1'),
         # angABC -> ∠ABC
@@ -96,7 +97,7 @@ def to_raw_latex(expr: str) -> str:
         # dAtBC -> d_{A 到 BC}
         (r'\bd([A-Z])t([A-Z]{2})\b', r'd_{\1 到 \2}'),
         # nABC -> 平面法向量
-        (r'\bn([A-Z]{3})\b', r'\\overrightarrow{n_{平面\1}}'),
+        (r'\bn([A-Z]{3})\b', r'\\overrightarrow{n}_{平面\1}'),
         # angvABCD -> 向量夹角 <AB, CD>
         (r'\bangv([A-Z]{2})([A-Z]{2})\b', r'<\\overrightarrow{\1}, \\overrightarrow{\2}>'),
         # angrABCD -> 二面角 ∠A-BC-D
@@ -111,6 +112,8 @@ def to_raw_latex(expr: str) -> str:
     for pattern, repl in rules:
         expr = re.sub(pattern, repl, expr)
 
+    print("[debug]:latex_subed:")
+    print(expr)
     return expr
 
 
