@@ -58,10 +58,9 @@ declare global {
 
           solve: (expr: string) => Promise<Array<string>>;
 
-          // 极值点探索: f_str 目标函数(DSL 字符串), sym_str 变量列表(空格分隔)
-          // 返回驻点列表 [{latex: LaTeX, values: [数值...]}, ...]
+          // 极值点探索: 使用最近一次 solve 的缓存表达式(无需传函数),
+          // 只传变量列表(空格分隔)。返回驻点 [{latex, values}, ...]
           get_expore: (
-            f_str: string,
             sym_str: string,
           ) => Promise<Array<{ latex: string; values: Array<number> }>>;
         };

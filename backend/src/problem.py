@@ -122,6 +122,10 @@ class Problem:
         # 用于临时存放正在添加的新对象依赖哪些对象
         self.requirements_tracker: set[MathObj] = set()
 
+        # 最近一次 solve 解析出的 SymPy 表达式缓存(供 get_expore 直接探索,
+        # 避免重复解析;仅存当前计算结果,换表达式即覆盖)
+        self._last_expr: Optional[Expr] = None
+
     # ═══════════════════════════════════════════════════════
     # 第一部分：对象管理（抄 2D 原版，基本不改）
     # ═══════════════════════════════════════════════════════
@@ -345,27 +349,26 @@ class Problem:
 
     # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
     # 实验性方法(原实现缺 self 且不解析字符串,前端无法调用,已修复)
-    def get_expore(self, expr, sym_str: str = 'x y') -> list:
+    def get_expore(self, sym_str: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
 
         参数:
-            expr: 目标函数,可以是字符串(自动用 DSL 解析)或 SymPy 表达式
             sym_str: 参与求解的未知数,用空格分隔(默认 'x y')
         返回:
             驻点列表,每项为字典 {latex: 展示用 LaTeX, values: [数值...]}
             (全部 JSON 可序列化;数值为 float,解不出的变量保留符号名)
         注意:
+            - 直接使用最近一次 solve() 缓存的计算结果(self._last_expr),
+              无需重复传表达式;先 solve 再 explore
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
             - 只解多项式方程组,复杂函数可能无解或很慢
             - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
               需要 JSON 序列化,SymPy 对象无法序列化
         """
-        # 兼容字符串与 SymPy 表达式两种输入
-        if isinstance(expr, str):
-            f = self._eval_str_expr(expr)  # 字符串 → DSL 解析
-        else:
-            f = expr  # 已是表达式,直接引用(避免重复计算)
+        if self._last_expr is None:
+            raise ValueError('还没有计算结果,请先点击"🚀 启动!"求解')
+        f = self._last_expr  # 直接引用缓存的 SymPy 表达式,不重复解析
         # 定义符号变量(symbols('x y') → 元组, symbols('x') → 单个 Symbol,统一转列表)
         xs = symbols(sym_str, real=True)
         if not isinstance(xs, (tuple, list)):
@@ -664,9 +667,12 @@ class Problem:
         :return: 所有可能的解的 LaTeX
         """
         left = to_raw_latex(expr)
-        
+
+        # 缓存解析结果,供 get_expore 直接探索(避免重复解析)
+        self._last_expr = self._eval_str_expr(expr)
+
         target = Symbol('target')
-        eqs = [Eq(target, self._eval_str_expr(expr))]
+        eqs = [Eq(target, self._last_expr)]
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
         # 去重: 防止重复符号导致 SymPy 报 duplicate symbols given

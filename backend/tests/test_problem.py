@@ -181,19 +181,28 @@ class TestSolve:
 class TestExplore:
     """极值点探索
     返回格式: [{latex: LaTeX字符串, values: [数值...]}, ...]
+    注意: 探索直接使用最近一次 solve 的缓存表达式,须先 solve
     """
+
+    def test_requires_solve_first(self, prob):
+        """未 solve 就 explore 应报错提示"""
+        import pytest
+        with pytest.raises(ValueError):
+            prob.get_expore('t')
 
     def test_single_var(self, prob):
         """f(t) = t²-2t+1 的驻点是 t=1"""
         prob.add_symbol('t')
-        result = prob.get_expore('t**2 - 2*t + 1', 't')
+        prob.solve('t**2 - 2*t + 1')
+        result = prob.get_expore('t')
         assert result[0]['values'] == [1.0]
 
     def test_multi_var(self, prob):
         """f(u,v) = u²+v² 的驻点是 (0,0)"""
         prob.add_symbol('u')
         prob.add_symbol('v')
-        result = prob.get_expore('u**2 + v**2', 'u v')
+        prob.solve('u**2 + v**2')
+        result = prob.get_expore('u v')
         assert result[0]['values'] == [0.0, 0.0]
 
     def test_dsl_expr(self, prob):
@@ -201,19 +210,31 @@ class TestExplore:
         prob.add_symbol('t')
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', 't', '0', '0', '', '')
-        result = prob.get_expore('AB**2', 't')
+        prob.solve('AB**2')
+        result = prob.get_expore('t')
         assert result[0]['values'] == [0.0]
+
+    def test_cache_overwrite(self, prob):
+        """换表达式后缓存被覆盖,探索用新结果"""
+        prob.add_symbol('t')
+        prob.solve('t**2 - 2*t + 1')
+        prob.solve('t**3 - 3*t')  # 覆盖缓存
+        result = prob.get_expore('t')
+        values = sorted(r['values'][0] for r in result)
+        assert values == [-1.0, 1.0]
 
     def test_json_serializable(self, prob):
         """返回必须能 JSON 序列化(pywebview 桥接要求)"""
         import json
         prob.add_symbol('t')
-        result = prob.get_expore('t**2', 't')
+        prob.solve('t**2')
+        result = prob.get_expore('t')
         json.dumps(result)  # 不抛异常即通过
 
     def test_latex_field(self, prob):
         """每项含 latex 展示字段"""
         prob.add_symbol('t')
-        result = prob.get_expore('t**2', 't')
+        prob.solve('t**2')
+        result = prob.get_expore('t')
         assert 'latex' in result[0]
         assert '0' in result[0]['latex']

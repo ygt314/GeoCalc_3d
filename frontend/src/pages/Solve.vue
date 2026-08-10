@@ -9,26 +9,36 @@
       <q-input
         v-model="exploreSymsInput"
         dense
-        placeholder="空格分隔,如 t u。留空则不探索"
+        placeholder="空格分隔,如 t u。留空则只求解"
       />
     </div>
     <div class="container">
+      <!-- ① 求解按钮 -->
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
-        > 🚀 启动！
+        > 🚀 求解！
       </q-btn>
-      <q-linear-progress indeterminate v-if="solving" />
+      <!-- ② 极值探索按钮(分步操作,用最近一次求解的结果) -->
+      <q-btn
+        :disable="exploreSymsInput.trim().length === 0 || exploring || !hasSolved"
+        color="secondary"
+        @click="explore"
+      > 🔍 极值探索
+      </q-btn>
+      <q-linear-progress indeterminate v-if="solving || exploring" />
       <div id="duration">用时 {{ duration }}</div>
     </div>
+
+    <!-- 求解结果 -->
     <div v-if="solutions.length > 0">
       <div>以下是所有可能的解：</div>
       <div v-for="s in solutions" :key="s" v-katex>$$ {{ s }} $$</div>
     </div>
 
-    <!-- ═══════════════════ 极值点探索(求解后自动进行) ═══════════════════ -->
+    <!-- ═══════════════════ 极值点探索结果 ═══════════════════ -->
     <div v-if="exploreDone">
       <hr />
       <div>
-        <b>🔍 极值点探索</b>(对表达式 {{ expr }} 求偏导 = 0,变量:{{ exploreSyms }})
+        <b>🔍 极值点探索</b>(对最近求解的表达式求偏导 = 0,变量:{{ exploreSyms }})
       </div>
       <div v-if="extrema.length > 0">
         <div>可能的驻点：</div>
@@ -55,12 +65,14 @@ const t2 = ref(0);
 
 const solutions = ref<Array<string>>([]);
 
-// ── 极值点探索(求解后自动,变量由用户输入决定) ──
+// ── 极值点探索(分步: 先求解,后探索;探索用最近一次求解的缓存) ──
 const exploreSymsInput = ref('');
 const exploreDone = ref(false);
 const exploreSyms = ref('');
 const extrema = ref<Array<{ latex: string; values: Array<number> }>>([]);
 const exploreError = ref('');
+const hasSolved = ref(false);       // 是否已求解过(没求解不能探索)
+const exploring = ref(false);
 
 function solve() {
   t1.value = t2.value = Date.now();
@@ -70,30 +82,43 @@ function solve() {
   exploreError.value = '';
   window.pywebview.api.problem
     .solve(expr.value)
-    .then(async (result) => {
+    .then((result) => {
       if (result.length === 0) {
         result.push('无解');
       }
       solutions.value = result;
-      // ── 求解后自动进行极值点探索(仅当用户填了变量) ──
-      const syms = exploreSymsInput.value.trim();
-      if (syms.length === 0) {
-        return; // 用户未指定变量,跳过探索
-      }
-      try {
-        exploreSyms.value = syms;
-        const ext = await window.pywebview.api.problem.get_expore(expr.value, syms);
-        extrema.value = ext;
-        exploreDone.value = true;
-      } catch (e) {
-        exploreError.value = String(e);
-      }
+      hasSolved.value = true;  // 求解成功,解锁探索按钮
     })
     .catch((e) => {
       alert('求解出错 qwq\n' + e);
     })
     .finally(() => {
       solving.value = false;
+    });
+}
+
+// 极值探索:直接使用最近一次求解缓存的后端表达式,无需再传函数
+function explore() {
+  const syms = exploreSymsInput.value.trim();
+  if (syms.length === 0) {
+    return;
+  }
+  exploring.value = true;
+  exploreDone.value = false;
+  exploreError.value = '';
+  extrema.value = [];
+  window.pywebview.api.problem
+    .get_expore(syms)
+    .then((result) => {
+      extrema.value = result;
+      exploreSyms.value = syms;
+      exploreDone.value = true;
+    })
+    .catch((e) => {
+      exploreError.value = String(e);
+    })
+    .finally(() => {
+      exploring.value = false;
     });
 }
 
