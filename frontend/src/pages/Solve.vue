@@ -33,10 +33,10 @@
       <div v-if="extrema.length > 0">
         <div>可能的驻点：</div>
         <div v-for="(e, i) in extrema" :key="i">
-          点{{ i + 1 }}: <span v-katex>$ {{ formatExtremum(e) }} $</span>
+          点{{ i + 1 }}: <span v-katex>$ {{ e.latex }} $</span>
         </div>
       </div>
-      <div v-else>无驻点或无解(可能没有自由变量,或函数无驻点)</div>
+      <div v-else>无驻点或无解(表达式可能是常量,或函数无驻点)</div>
     </div>
     <div v-else-if="exploreError" class="warn">
       🔍 极值探索:{{ exploreError }}
@@ -59,13 +59,8 @@ const solutions = ref<Array<string>>([]);
 const exploreSymsInput = ref('');
 const exploreDone = ref(false);
 const exploreSyms = ref('');
-const extrema = ref<Array<Array<number>>>([]);
+const extrema = ref<Array<{ latex: string; values: Array<number> }>>([]);
 const exploreError = ref('');
-
-function formatExtremum(e: Array<number>) {
-  // 把 [x, y] 渲染成 (x, y) 形式
-  return `(${e.join(', ')})`;
-}
 
 function solve() {
   t1.value = t2.value = Date.now();

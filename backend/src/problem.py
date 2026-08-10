@@ -353,11 +353,13 @@ class Problem:
             expr: 目标函数,可以是字符串(自动用 DSL 解析)或 SymPy 表达式
             sym_str: 参与求解的未知数,用空格分隔(默认 'x y')
         返回:
-            可能的极值点列表 [(x1, y1...), (x2, y2...), ...]
-            数值已转为 Python 原生类型(float/int),保证 pywebview JSON 可序列化
+            驻点列表,每项为字典 {latex: 展示用 LaTeX, values: [数值...]}
+            (全部 JSON 可序列化;数值为 float,解不出的变量保留符号名)
         注意:
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
             - 只解多项式方程组,复杂函数可能无解或很慢
+            - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
+              需要 JSON 序列化,SymPy 对象无法序列化
         """
         # 兼容字符串与 SymPy 表达式两种输入
         if isinstance(expr, str):
@@ -376,13 +378,16 @@ class Problem:
         extrema = []
         for sol in solutions:
             if sol:
-                xs_val = tuple(sol.get(x_i, x_i) for x_i in xs)  # 若 x 不存在,保留符号 x
-                # SymPy 数值(Integer/Zero/Rational/Sqrt 等)不能 JSON 序列化,
-                # 统一转 Python 原生类型;解不出的变量保留符号名(字符串)
-                extrema.append(tuple(
+                # 数值转 float,解不出的变量保留符号名(字符串)
+                values = tuple(
                     float(v) if v.is_number else str(v)
-                    for v in xs_val
-                ))
+                    for v in (sol.get(x_i, x_i) for x_i in xs)
+                )
+                # LaTeX 展示: (x1, y1, ...)
+                extrema.append({
+                    'latex': latex(tuple(values)),
+                    'values': list(values),
+                })
         return extrema
     # ═══════════════════════════════════════════════════════
     # 第四部分：添加对象（add_* 系列）
