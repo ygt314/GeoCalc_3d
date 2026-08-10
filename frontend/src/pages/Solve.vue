@@ -15,41 +15,23 @@
       <div v-for="s in solutions" :key="s" v-katex>$$ {{ s }} $$</div>
     </div>
 
-    <!-- ═══════════════════ 极值点探索(实验性) ═══════════════════ -->
-    <hr />
-    <q-expansion-item
-      icon="trending_down"
-      label="极值点探索(实验性)"
-      caption="对函数求偏导=0,解驻点。需先添加符号变量"
-      expand-icon="add"
-    >
-      <q-card>
-        <q-card-section>
-          <div class="container">
-            <label>函数 f</label>
-            <q-input v-model="exploreFunc" dense placeholder="如 u**2 + v**2 或 AB**2" />
-          </div>
-          <div class="container">
-            <label>变量</label>
-            <q-input v-model="exploreSyms" dense placeholder="空格分隔,如 u v" />
-          </div>
-          <q-btn
-            :disable="exploreFunc.length === 0 || exploring"
-            color="secondary"
-            @click="explore"
-          > 🔍 求驻点
-          </q-btn>
-          <q-linear-progress indeterminate v-if="exploring" />
-          <div v-if="extrema.length > 0">
-            <div>可能的驻点：</div>
-            <div v-for="(e, i) in extrema" :key="i">
-              点{{ i + 1 }}: <span v-katex>$ {{ formatExtremum(e) }} $</span>
-            </div>
-          </div>
-          <div v-else-if="exploreDone">无驻点或无解</div>
-        </q-card-section>
-      </q-card>
-    </q-expansion-item>
+    <!-- ═══════════════════ 极值点探索(求解后自动进行) ═══════════════════ -->
+    <div v-if="exploreDone">
+      <hr />
+      <div>
+        <b>🔍 极值点探索</b>(对表达式 {{ expr }} 求偏导 = 0,变量:{{ exploreSyms }})
+      </div>
+      <div v-if="extrema.length > 0">
+        <div>可能的驻点：</div>
+        <div v-for="(e, i) in extrema" :key="i">
+          点{{ i + 1 }}: <span v-katex>$ {{ formatExtremum(e) }} $</span>
+        </div>
+      </div>
+      <div v-else>无驻点或无解(可能没有自由变量,或函数无驻点)</div>
+    </div>
+    <div v-else-if="exploreError" class="warn">
+      🔍 极值探索:{{ exploreError }}
+    </div>
   </q-page>
 </template>
 
@@ -64,53 +46,51 @@ const t2 = ref(0);
 
 const solutions = ref<Array<string>>([]);
 
-function solve() {
-  t1.value = t2.value = Date.now();
-  solving.value = true;
-  solutions.value = [];
-  window.pywebview.api.problem
-    .solve(expr.value)
-    .then((result) => {
-      if (result.length === 0) {
-        result.push('无解');
-      }
-      solutions.value = result;
-    })
-    .catch((e) => {
-      alert('求解出错 qwq\n' + e);
-    })
-    .finally(() => {
-      solving.value = false;
-    });
-}
-
-// ── 极值点探索 ──
-const exploreFunc = ref('');
-const exploreSyms = ref('x y');
-const exploring = ref(false);
+// ── 极值点探索(求解后自动) ──
 const exploreDone = ref(false);
+const exploreSyms = ref('');
 const extrema = ref<Array<Array<number>>>([]);
+const exploreError = ref('');
 
 function formatExtremum(e: Array<number>) {
   // 把 [x, y] 渲染成 (x, y) 形式
   return `(${e.join(', ')})`;
 }
 
-function explore() {
-  exploring.value = true;
+function solve() {
+  t1.value = t2.value = Date.now();
+  solving.value = true;
+  solutions.value = [];
   exploreDone.value = false;
-  extrema.value = [];
+  exploreError.value = '';
   window.pywebview.api.problem
-    .get_expore(exploreFunc.value, exploreSyms.value)
-    .then((result) => {
-      extrema.value = result;
-      exploreDone.value = true;
+    .solve(expr.value)
+    .then(async (result) => {
+      if (result.length === 0) {
+        result.push('无解');
+      }
+      solutions.value = result;
+      // ── 求解后自动进行极值点探索 ──
+      try {
+        // 取当前所有符号作为探索变量
+        const syms = await window.pywebview.api.problem.get_symbol_names();
+        exploreSyms.value = syms.join(' ');
+        if (syms.length === 0) {
+          exploreError.value = '没有可探索的变量(请先添加未知数)';
+          return;
+        }
+        const ext = await window.pywebview.api.problem.get_expore(expr.value, syms.join(' '));
+        extrema.value = ext;
+        exploreDone.value = true;
+      } catch (e) {
+        exploreError.value = String(e);
+      }
     })
     .catch((e) => {
-      alert('极值探索出错 qwq\n' + e);
+      alert('求解出错 qwq\n' + e);
     })
     .finally(() => {
-      exploring.value = false;
+      solving.value = false;
     });
 }
 
@@ -152,5 +132,9 @@ setInterval(() => {
 #duration {
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.warn {
+  color: #f60;
 }
 </style>
