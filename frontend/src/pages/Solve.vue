@@ -18,13 +18,33 @@
         v-for="s in solutions"
         :key="s"
         class="solution-row"
-        :class="{ selected: selectedSolution === s }"
-        @click="selectedSolution = s"
+        :class="{ selected: selectedDisplay === s }"
+        @click="openPicker"
         v-katex
       >$$ {{ s }} $$
       </div>
-      <div class="hint">👆 点击某个解,可把它作为极值探索对象</div>
+      <div class="hint">👆 点击弹出选择框,选择某个解作为极值探索对象</div>
     </div>
+
+    <!-- 解选择框(KaTeX 渲染) -->
+    <q-dialog v-model="pickerOpen">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <h2>选择要探索的解</h2>
+          <div
+            v-for="s in solutions"
+            :key="s"
+            class="picker-row"
+            @click="pickSolution(s)"
+            v-katex
+          >$$ {{ s }} $$
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup flat label="取消" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <hr />
 
@@ -45,7 +65,8 @@
     <!-- 用求解结果时,显示当前选中的解 -->
     <div v-else-if="exploreSource === 'solution'" class="container">
       <label>选中的解</label>
-      <q-input :model-value="selectedSolution || '(点击上方求解结果选择)'" dense readonly />
+      <q-input :model-value="selectedDisplay || '(先点击上方解,弹出选择框)'" dense readonly />
+      <q-btn flat dense color="primary" @click="openPicker">选择…</q-btn>
     </div>
 
     <!-- 探索变量 -->
@@ -84,12 +105,27 @@ import { ref, computed } from 'vue';
 const expr = ref('');
 const solving = ref(false);
 const solutions = ref<Array<string>>([]);
-const selectedSolution = ref('');   // 用户点击选中的解(探索对象)
+const pickerOpen = ref(false);         // 选择框开关
+const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
+const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
+
+function openPicker() {
+  pickerOpen.value = true;
+}
+
+// 选中某个解: 提取等号右边的纯 latex 作为后端缓存键
+function pickSolution(s: string) {
+  selectedDisplay.value = s;
+  const eqIdx = s.indexOf(' = ');
+  selectedKey.value = eqIdx >= 0 ? s.slice(eqIdx + 3) : s;
+  pickerOpen.value = false;
+}
 
 function solve() {
   solving.value = true;
   solutions.value = [];
-  selectedSolution.value = '';
+  selectedDisplay.value = '';
+  selectedKey.value = '';
   window.pywebview.api.problem
     .solve(expr.value)
     .then((result) => {
@@ -116,7 +152,7 @@ const exploreError = ref('');
 const canExplore = computed(() => {
   if (exploreSyms.value.trim().length === 0) return false;
   if (exploreSource.value === 'solution') {
-    return selectedSolution.value.length > 0;   // 需选中一个解
+    return selectedKey.value.length > 0;   // 需选中一个解(有纯 latex 键)
   }
   return customExpr.value.trim().length > 0;    // 需填自定义表达式
 });
@@ -128,9 +164,9 @@ function explore() {
   extrema.value = [];
   const syms = exploreSyms.value.trim();
   if (exploreSource.value === 'solution') {
-    // 用求解结果: choice = 选中解的 LaTeX, custom=True(从缓存字典取)
+    // 用求解结果: choice = 选中解的纯 latex 键, custom=False(从缓存字典取)
     window.pywebview.api.problem
-      .expore_extrema(selectedSolution.value, syms, true)
+      .expore_extrema(selectedKey.value, syms, false)
       .then((result) => {
         extrema.value = result;
         exploreDone.value = true;
@@ -142,9 +178,9 @@ function explore() {
         exploring.value = false;
       });
   } else {
-    // 自定义表达式: choice = 表达式字符串, custom=False(DSL 解析)
+    // 自定义表达式: choice = 表达式字符串, custom=True(DSL 解析)
     window.pywebview.api.problem
-      .expore_extrema(customExpr.value, syms, false)
+      .expore_extrema(customExpr.value, syms, true)
       .then((result) => {
         extrema.value = result;
         exploreDone.value = true;
