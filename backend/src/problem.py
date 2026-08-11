@@ -121,15 +121,12 @@ class Problem:
 
         # 用于临时存放正在添加的新对象依赖哪些对象
         self.requirements_tracker: set[MathObj] = set()
-
         # 最近一次 solve 解出的目标表达式
         # 对"解"探索而非对原始输入表达式,仅存当前结果,换题即覆盖)
         self._last_exprs: dict[str, Expr] = {}
-
     # ═══════════════════════════════════════════════════════
     # 第一部分：对象管理（抄 2D 原版，基本不改）
     # ═══════════════════════════════════════════════════════
-
     def _add_math_obj(self, obj: MathObj) -> None:
         """添加数学对象，并把 tracker 里的依赖关系固化到对象上"""
         self.math_objs[obj.id] = obj
@@ -142,12 +139,10 @@ class Problem:
         """添加条件并把 id 加到列表里"""
         self._add_math_obj(cond)
         self.cond_ids.append(cond.id)
-
     # ═══════════════════════════════════════════════════════
     # 第二部分：数学对象访问器（_get_* 系列）★ 3D 改动核心区
     # 每个方法上都挂了 @track_requirement，访问即记录依赖
     # ═══════════════════════════════════════════════════════
-
     @track_requirement
     def _get_sp_symbol(self, name: str) -> Symbol:
         """获取 SymPy 符号（3D 版不改）"""
@@ -162,7 +157,6 @@ class Problem:
     def _get_y_of(self, name: str):
         """获取点的 y 坐标（3D 版不改）"""
         return self.math_objs[name].y  # type: ignore
-
     # 新增 _get_z_of（3D 特有）
     @track_requirement
     def _get_z_of(self, name: str):
@@ -207,7 +201,6 @@ class Problem:
         v2 = self._get_vec(name[1:])
         # 面积 = |AB × AC| / 2（叉积模长的一半）
         return v1.cross(v2).norm()/2
-
     # 新增 3D 访问器
     # [improve_flag]暂时与2D一样使用（反）正余弦值
     def _get_plane_normal(self, name: str) -> Matrix:
@@ -274,12 +267,10 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第三部分：字符串表达式 → SymPy 代码 ★ 整个项目最巧妙的部分
     # ═══════════════════════════════════════════════════════
-
     def _eval_str_expr(self, expr: str) -> Expr | Never:
         """
         尝试解析字符串表达式，解析失败会报错
         原理：一串正则替换把"人话"变成 Python 代码，然后 eval
-
         2D 版的规则表（你在 3D 版要扩展它）：
         '^' → '**'                              幂运算
         'deg' → '* pi / 180'                    角度制转弧度
@@ -346,12 +337,10 @@ class Problem:
         for pattern, repl in rules:
             expr = re.sub(pattern, repl, expr)
         return simplify(eval(expr))  # 不能直接用sympify，否则会自己造符号
-
     # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
     def _get_extrema(self, f: Expr, syms: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
-
         参数:
             f: 待求解函数,sympy表达式
             syms: 参与求解的未知数,用空格分隔(默认 'x y')
@@ -391,7 +380,6 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第四部分：添加对象（add_* 系列）
     # ═══════════════════════════════════════════════════════
-
     def add_symbol(self, name: str, domain_settings: Optional[DomainSettings] = None):
         """添加并初始化未知数（3D 版不改）
         防重: 同名符号已存在则报错,避免 solve 时 duplicate symbols 崩溃
@@ -412,24 +400,9 @@ class Problem:
         :param line1: 该点所在的平面/直线 1
         :param line2: 该点所在的平面/直线 2
         """
-        # 抄 2D 原版 add_point，做三处修改：
-        #   1. 加 z_str 处理（z_str == 'z' → add_symbol(f'z_{name}')）
-        #   2. 点在"直线"上：2D 是 _get_line(l).equation()（Ax+By+C=0 一个方程）
-        #      3D 直线需要两个平面方程联立，或直接用 SymPy Line3D 的方程（参数式）
-        #   3. solve(eqs, x, y, z) 解三元
-        # 2D 原版关键结构（抄的时候保持）：
-        #   try:
-        #       eqs = []
-        #       # 设未知数 + 收集方程 + 解出坐标
-        #       solution = solve(eqs, x, y, dict=True)[0]
-        #       point = GCPoint(name, solution[x], solution[y])
-        #       self._add_math_obj(point); self.point_names.append(name)
-        #   except Exception as e:
-        #       # 清理可能添加的未知数 + 清空 tracker + raise
         try:
             eqs: list[Eq] = []
             required_by_new_symbols: set[str] = set()
-
             # 设未知数
             if x_str == 'x':
                 self.add_symbol(f'x_{name}')
@@ -437,7 +410,6 @@ class Problem:
                 self.add_symbol(f'y_{name}')
             if z_str == 'z':
                 self.add_symbol(f'z_{name}')
-
             # 先设完未知数再读取处理，防止干扰依赖关系
             if x_str != '':
                 if x_str == 'x':
@@ -469,7 +441,6 @@ class Problem:
                             eqs.append(Eq(sub_eq, 0))
                     else:
                         eqs.append(Eq(eq, 0))
-
             # 求解点坐标并添加
             # 关键: 把本点新建的坐标未知数(x_A/y_A/z_A)也纳入求解,
             # 否则它们是自由符号, solve(x,y,z) 会误判欠定
@@ -491,12 +462,10 @@ class Problem:
                     del self.math_objs[name]
             self.requirements_tracker.clear()
             raise e
-
     # ═══════════════════════════════════════════════════════
     # 第五部分：条件方法 ★ 2D 有 9 种，3D 你要扩展
     # 每个方法都被 @AddBinCond/@AddUnaryCond 装饰，只负责"给出方程列表"
     # ═══════════════════════════════════════════════════════
-
     # 新增：内部向量关系方程
     def _vec_eq(self,a: Matrix,b: Matrix, p: int = 0) -> Eq:
         left = a.dot(b) if bool(p) else a.cross(b).norm()**2
@@ -506,7 +475,6 @@ class Problem:
     def add_expr_eq(self, input1: str, input2: str):
         """两表达式相等（3D 版不改）"""
         return [Eq(self._eval_str_expr(input1), self._eval_str_expr(input2))]
-
     # 2D 原版的平行/垂直是用一般式系数（a1*b2 == a2*b1）——3D 里要换成方向向量！
     @AddBinCond(r'\\parallel')
     def add_line_parallel_line(self, input1: str, input2: str):
@@ -519,7 +487,6 @@ class Problem:
         """线线垂直：方向向量点积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_vec(input2)
         return [self._vec_eq(v1,v2,1)]
-
     # 面面平行：法向量叉积 = 0；面面垂直：法向量点积 = 0
     @AddBinCond(r'\\parallel')
     def add_plane_parallel_plane(self, input1: str, input2: str):
@@ -545,11 +512,9 @@ class Problem:
         v1 = self._get_vec(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2)]
     # [improve_flag]几何元素集合关系处理
-
     # ═══════════════════════════════════════════════════════
     # 第六部分：查询 / 删除 / 存取（抄 2D 原版，几乎不改）
     # ═══════════════════════════════════════════════════════
-
     def get_symbol_names(self) -> list[str]:
         return self.symbol_names
 
@@ -637,7 +602,6 @@ class Problem:
         # 删除依赖关系
         for obj in self.math_objs.values():
             obj.required_by -= set(ids)
-
     # 纠正原TODO计划，新增读写3D pickle文件方法
     def save_to_file(self) -> None:
         path = windows[0].create_file_dialog(FileDialog.SAVE, file_types=('几何计算器 pickle 文件 (*.gc.pkl)',))
@@ -655,7 +619,6 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第七部分：🚀 求解（这是最终目标，结构抄 2D 原版）
     # ═══════════════════════════════════════════════════════
-
     def solve(self, expr: str) -> list[str]:
         """
         🚀 启动！
@@ -680,9 +643,20 @@ class Problem:
         self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
-
     # 极值点探索入口，含调试输出（控制台）
     def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
+        '''
+        choice:选择对应latex或自定义表达式
+        sym_str:待求符号
+        custom:是否自定义
+        return:极值点latex列表
+        '''
+        print('[debug]:choice',f'(custom is {custom})')
+        print(choice)
+        sss=self._eval_str_expr(choice) if custom else self._last_exprs[choice]
+        return self._get_extrema(sss,sym_str)
+   # 函数值探索入口，含调试输出（控制台）
+    def expore_func(self, choice: str, sym_str: str, values: dict, custom=False) -> str:
         '''
         choice:选择对应latex或自定义表达式
         sym_str:待求符号
@@ -694,4 +668,11 @@ class Problem:
         # custom=True → choice 是自定义表达式字符串(DSL 解析)
         # custom=False → choice 是求解结果的 latex 键(从缓存取)
         sss=self._eval_str_expr(choice) if custom else self._last_exprs[choice]
-        return self._get_extrema(sss,sym_str)
+        # values 的键是字符串(如 {'t': 2}),需转成与表达式匹配的 SymPy Symbol
+        # 注意: _eval_str_expr 创建的符号带 real=True,须用 symbols() 同样生成
+        sub_map = {}
+        for k, v in values.items():
+            sym = symbols(k, real=True)
+            sub_map[sym if isinstance(sym, Symbol) else sym[0]] = v
+        # evalf() 返回 SymPy Float,不支持 Python 的 :g 格式,先转原生 float
+        return f"{float(sss.subs(sub_map).evalf()):g}"

@@ -64,8 +64,39 @@
         @click="explore"
       > 🔍 极值探索
       </q-btn>
+      <!-- 函数值探索: 弹框输入变量值 -->
+      <q-btn
+        :disable="!canExplore || exploring"
+        color="accent"
+        @click="openFuncPicker"
+      > 📊 函数值探索
+      </q-btn>
       <q-linear-progress indeterminate v-if="exploring" />
     </div>
+
+    <!-- 函数值探索弹框: 输入各变量取值 -->
+    <q-dialog v-model="funcPickerOpen">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <h2>📊 函数值探索</h2>
+          <div class="hint">
+            对
+            <span v-if="exploreSource === 'solution'">{{ selectedDisplay }}</span>
+            <span v-else>{{ customExpr }}</span>
+            计算函数值
+          </div>
+          <div v-for="s in exploreSymsList" :key="s" class="container">
+            <label>{{ s }} =</label>
+            <q-input v-model="funcValues[s]" dense placeholder="输入数值" type="number" step="any" />
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup flat label="取消" />
+          <q-btn v-close-popup color="accent" :disable="!funcValuesReady" @click="exploreFunc"
+            > 计算 </q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- 探索结果 -->
     <div v-if="exploreDone">
@@ -76,6 +107,19 @@
     </div>
     <div v-else-if="exploreError" class="warn">
       🔍 极值探索:{{ exploreError }}
+    </div>
+
+    <!-- 函数值探索结果 -->
+    <div v-if="funcResult !== ''" class="func-result">
+      <hr />
+      <div>
+        📊 函数值:
+        <span v-if="exploreSource === 'solution'">{{ selectedDisplay }}</span>
+        <span v-else>{{ customExpr }}</span>
+        在
+        <span v-for="(v, s) in funcValues" :key="s">{{ s }}={{ v }} </span>
+        处 = <b v-katex>$ {{ funcResult }} $</b>
+      </div>
     </div>
   </q-page>
 </template>
@@ -123,6 +167,53 @@ const exploring = ref(false);
 const exploreDone = ref(false);
 const extrema = ref<Array<string>>([]);
 const exploreError = ref('');
+
+// ── 函数值探索区 ──
+const funcPickerOpen = ref(false);   // 弹框开关
+const funcValues = ref<Record<string, string>>({});  // 变量 → 输入值
+const funcResult = ref('');          // 函数值结果
+
+// 探索变量列表(空格分隔 → 数组)
+const exploreSymsList = computed(() =>
+  exploreSyms.value.trim().split(/\s+/).filter(Boolean),
+);
+
+// 打开弹框: 初始化变量输入框
+function openFuncPicker() {
+  funcValues.value = {};
+  for (const s of exploreSymsList.value) {
+    funcValues.value[s] = '';
+  }
+  funcResult.value = '';
+  funcPickerOpen.value = true;
+}
+
+// 所有变量都已填值
+const funcValuesReady = computed(
+  () => exploreSymsList.value.length > 0
+    && exploreSymsList.value.every((s) => funcValues.value[s] !== '' && funcValues.value[s] !== undefined),
+);
+
+// 计算函数值: 把变量值 dict 传给后端
+function exploreFunc() {
+  const syms = exploreSyms.value.trim();
+  const values: Record<string, number> = {};
+  for (const s of exploreSymsList.value) {
+    values[s] = Number(funcValues.value[s]);
+  }
+  funcResult.value = '';
+  if (exploreSource.value === 'solution') {
+    window.pywebview.api.problem
+      .expore_func(selectedKey.value, syms, values, false)
+      .then((r) => { funcResult.value = r; })
+      .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
+  } else {
+    window.pywebview.api.problem
+      .expore_func(customExpr.value, syms, values, true)
+      .then((r) => { funcResult.value = r; })
+      .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
+  }
+}
 
 // 是否可以探索
 const canExplore = computed(() => {
@@ -240,5 +331,9 @@ setInterval(() => {
   border-radius: 4px;
   background: rgba(0, 128, 255, 0.1);
   border: 1px solid rgba(0, 128, 255, 0.3);
+}
+
+.func-result {
+  color: #333;
 }
 </style>

@@ -225,3 +225,32 @@ class TestExplore:
         prob.add_symbol('v')
         result = prob.expore_extrema('u**2 + v**2', 'u v', custom=True)
         json.dumps(result)  # 不抛异常即通过
+
+
+class TestExploreFunc:
+    """函数值探索: 给定变量值,算函数值"""
+
+    def test_custom(self, prob):
+        """自定义表达式: t²-2t+1 @ t=2 → 1"""
+        prob.add_symbol('t')
+        result = prob.expore_func('t**2 - 2*t + 1', 't', {'t': 2}, custom=True)
+        assert result == '1'
+
+    def test_min_point(self, prob):
+        """最小值点: t²-2t+1 @ t=1 → 0"""
+        prob.add_symbol('t')
+        result = prob.expore_func('t**2 - 2*t + 1', 't', {'t': 1}, custom=True)
+        assert result == '0'
+
+    def test_solution_key(self, prob):
+        """用求解结果缓存键"""
+        prob.add_symbol('t')
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', 't', '0', '0', '', '')
+        prob.add_expr_eq('AB', '2')
+        prob.solve('AB')
+        assert prob._last_exprs
+        key = next(iter(prob._last_exprs))
+        # AB=2 解出 t=±2, 求 f(AB)=2 @ t=2 → 2
+        result = prob.expore_func(key, 't', {'t': 2}, custom=False)
+        assert result == '2'
