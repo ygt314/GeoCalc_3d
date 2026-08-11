@@ -109,16 +109,13 @@
       🔍 极值探索:{{ exploreError }}
     </div>
 
-    <!-- 函数值探索结果 -->
+    <!-- 函数值探索结果(纯文本,表达式上方已显示) -->
     <div v-if="funcResult !== ''" class="func-result">
       <hr />
       <div>
-        📊 函数值:
-        <span v-if="exploreSource === 'solution'">{{ selectedDisplay }}</span>
-        <span v-else>{{ customExpr }}</span>
-        在
-        <span v-for="(v, s) in funcValues" :key="s">{{ s }}={{ v }} </span>
-        处 = <span ref="funcResultEl" v-html="funcResultHtml"></span>
+        📊 函数值 =
+        <b>{{ funcResult }}</b>
+        <span class="hint">(在 {{ funcValuesDisplay }} 处)</span>
       </div>
     </div>
   </q-page>
@@ -126,7 +123,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import katex from 'katex';
 
 // ── 求解区 ──
 const expr = ref('');
@@ -173,12 +169,15 @@ const exploreError = ref('');
 const funcPickerOpen = ref(false);   // 弹框开关
 const funcValues = ref<Record<string, string>>({});  // 变量 → 输入值
 const funcResult = ref('');          // 函数值结果
-// 用 katex.renderToString 显式渲染(避免 v-katex 指令在 v-if 挂载时序问题)
-const funcResultHtml = ref('');
 
 // 探索变量列表(空格分隔 → 数组)
 const exploreSymsList = computed(() =>
   exploreSyms.value.trim().split(/\s+/).filter(Boolean),
+);
+
+// 变量取值展示: "t=2, u=3"
+const funcValuesDisplay = computed(() =>
+  exploreSymsList.value.map((s) => `${s}=${funcValues.value[s]}`).join(', '),
 );
 
 // 打开弹框: 初始化变量输入框
@@ -188,7 +187,6 @@ function openFuncPicker() {
     funcValues.value[s] = '';
   }
   funcResult.value = '';
-  funcResultHtml.value = '';
   funcPickerOpen.value = true;
 }
 
@@ -206,11 +204,8 @@ function exploreFunc() {
     values[s] = Number(funcValues.value[s]);
   }
   funcResult.value = '';
-  funcResultHtml.value = '';
   const done = (r: string) => {
     funcResult.value = r;
-    // 后端返回的数字字符串(如 '1')也能被 katex 渲染
-    funcResultHtml.value = katex.renderToString(r, { throwOnError: false });
   };
   if (exploreSource.value === 'solution') {
     window.pywebview.api.problem
