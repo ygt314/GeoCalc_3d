@@ -261,3 +261,25 @@ class TestExploreFunc:
         # AB=2 解出 t=±2, 求 f(AB)=2 @ t=2 → 2
         result = prob.expore_func(key, {'t': 2}, custom=False)
         assert '2' in result
+
+    # ── 嵌套根号化简(sqrtdenest)──
+    # 参考原版 issue: https://github.com/zhdbk3/GeometryCalculator/issues/5
+
+    def test_solve_sqrtdenest(self, prob):
+        """求解: √(3+2√2) 化简为 1+√2"""
+        result = prob.solve('sqrt(3 + 2*sqrt(2))')
+        # solve 返回 '√(3+2√2) = 1+√2'
+        assert any('1 + \\sqrt{2}' in r for r in result)
+
+    def test_extrema_sqrtdenest(self, prob):
+        """极值: t²-2√3·t+1 驻点含 √3"""
+        prob.add_symbol('t')
+        result = prob.expore_extrema('t**2 - 2*sqrt(3)*t + 1', 't', custom=True)
+        assert any(r'\sqrt{3}' in r for r in result)
+
+    def test_func_sqrtdenest(self, prob):
+        """函数值: t² @ t=1+√2 保留精确根号 + 浮点"""
+        prob.add_symbol('t')
+        result = prob.expore_func('t**2', {'t': '1 + sqrt(2)'}, custom=True)
+        assert '\\sqrt{2}' in result  # 精确 latex 含根号
+        assert '5.82843' in result    # 浮点近似

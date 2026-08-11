@@ -369,9 +369,10 @@ class Problem:
         if not solutions:
             return ["\\emptyset"]
         for sol in solutions:
-            values = [sol.get(x_i, x_i) for x_i in xs]
+            # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
+            values = [sqrtdenest(sol.get(x_i, x_i)) for x_i in xs]
             # LaTeX 展示: (x1, y1, ...)
-            ans = values + [f.subs(sol)]
+            ans = values + [sqrtdenest(f.subs(sol))]
             sol_str = ",".join(latex(i) for i in ans)
             extrema.append(f'({sol_str})')
         print("[debug_get_extrema]:极值点列表")
@@ -672,7 +673,8 @@ class Problem:
         for k, v in values.items():
             sym = symbols(k, real=True)
             sub_map[sym if isinstance(sym, Symbol) else sym[0]] = v
-        ans = sss.subs(sub_map)
+        # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
+        ans = sqrtdenest(sss.subs(sub_map))
         print('values:',values)
         print("answer:",ans)
         return f"$ {latex(ans)} = {float(ans.evalf()):g}$"
