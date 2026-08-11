@@ -1,43 +1,36 @@
-# 几何计算器 前端 (geometry-calculator-frontend)
+# 3D几何计算器 前端 (geocalc-3d-frontend)
 
-几何计算器的前端，将由 pywebview 运行并与 Python 后端通信。
+3D几何计算器（GeoCalc_3d）的前端，由 pywebview 运行并与 Python 后端通信。
 
-## Install the dependencies
+## 安装依赖
 
 ```bash
-yarn
-# or
 npm install
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+## 开发模式（热更新）
 
 ```bash
-quasar dev
+npm run dev
+# 浏览器打开 http://localhost:9000
+# 配合后端: cd backend && python src/main_dev.py
 ```
 
-### Lint the files
+## 构建正式版
 
 ```bash
-yarn lint
-# or
-npm run lint
+npm run build
+# 输出到 ../backend/src/ui
+# 之后运行: cd ../backend && python fix_ui_paths.py && cd src && python main.py
 ```
 
-### Format the files
+## 技术
 
-```bash
-yarn format
-# or
-npm run format
-```
+- Quasar (Vue 3) + Vite + TypeScript
+- KaTeX 公式渲染（`v-katex` 指令，见 `src/boot/katex.ts`）
+- 与后端通过 `window.pywebview.api` 桥接（类型声明在 `src/types/pywebview.d.ts`）
 
-### Build the app for production
+## 注意
 
-```bash
-quasar build
-```
-
-### Customize the configuration
-
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+- Chromium 87 不支持 ES2022 API，`index.html` 已加 polyfill（`Object.hasOwn` / `Array.prototype.at`）
+- 正式版需 `fix_ui_paths.py` 修正资源路径（Quasar 绝对路径 → file:// 相对路径）
