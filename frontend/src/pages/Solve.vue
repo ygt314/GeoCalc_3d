@@ -118,7 +118,7 @@
         <span v-else>{{ customExpr }}</span>
         在
         <span v-for="(v, s) in funcValues" :key="s">{{ s }}={{ v }} </span>
-        处 = <b v-katex>$ {{ funcResult }} $</b>
+        处 = <span ref="funcResultEl" v-html="funcResultHtml"></span>
       </div>
     </div>
   </q-page>
@@ -126,6 +126,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import katex from 'katex';
 
 // ── 求解区 ──
 const expr = ref('');
@@ -172,6 +173,8 @@ const exploreError = ref('');
 const funcPickerOpen = ref(false);   // 弹框开关
 const funcValues = ref<Record<string, string>>({});  // 变量 → 输入值
 const funcResult = ref('');          // 函数值结果
+// 用 katex.renderToString 显式渲染(避免 v-katex 指令在 v-if 挂载时序问题)
+const funcResultHtml = ref('');
 
 // 探索变量列表(空格分隔 → 数组)
 const exploreSymsList = computed(() =>
@@ -185,6 +188,7 @@ function openFuncPicker() {
     funcValues.value[s] = '';
   }
   funcResult.value = '';
+  funcResultHtml.value = '';
   funcPickerOpen.value = true;
 }
 
@@ -202,15 +206,21 @@ function exploreFunc() {
     values[s] = Number(funcValues.value[s]);
   }
   funcResult.value = '';
+  funcResultHtml.value = '';
+  const done = (r: string) => {
+    funcResult.value = r;
+    // 后端返回的数字字符串(如 '1')也能被 katex 渲染
+    funcResultHtml.value = katex.renderToString(r, { throwOnError: false });
+  };
   if (exploreSource.value === 'solution') {
     window.pywebview.api.problem
       .expore_func(selectedKey.value, syms, values, false)
-      .then((r) => { funcResult.value = r; })
+      .then(done)
       .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
   } else {
     window.pywebview.api.problem
       .expore_func(customExpr.value, syms, values, true)
-      .then((r) => { funcResult.value = r; })
+      .then(done)
       .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
   }
 }
