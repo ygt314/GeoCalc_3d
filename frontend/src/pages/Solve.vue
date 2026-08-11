@@ -19,32 +19,12 @@
         :key="s"
         class="solution-row"
         :class="{ selected: selectedDisplay === s }"
-        @click="openPicker"
+        @click="pickSolution(s)"
         v-katex
       >$$ {{ s }} $$
       </div>
-      <div class="hint">👆 点击弹出选择框,选择某个解作为极值探索对象</div>
+      <div class="hint">👆 点击某个解,选中为极值探索对象</div>
     </div>
-
-    <!-- 解选择框(KaTeX 渲染) -->
-    <q-dialog v-model="pickerOpen">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <h2>选择要探索的解</h2>
-          <div
-            v-for="s in solutions"
-            :key="s"
-            class="picker-row"
-            @click="pickSolution(s)"
-            v-katex
-          >$$ {{ s }} $$
-          </div>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn v-close-popup flat label="取消" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
 
     <hr />
 
@@ -62,11 +42,13 @@
       <label>表达式</label>
       <q-input v-model="customExpr" dense placeholder="如 t**2 - 2*t + 1" />
     </div>
-    <!-- 用求解结果时,显示当前选中的解 -->
+    <!-- 用求解结果时,直接渲染选中的解(KaTeX),无文本框 -->
     <div v-else-if="exploreSource === 'solution'" class="container">
       <label>选中的解</label>
-      <q-input :model-value="selectedDisplay || '(先点击上方解,弹出选择框)'" dense readonly />
-      <q-btn flat dense color="primary" @click="openPicker">选择…</q-btn>
+      <span v-if="selectedKey" class="selected-solution" v-katex>
+        $ {{ selectedDisplay }} $
+      </span>
+      <span v-else class="hint">(先点击上方求解结果,选择要探索的解)</span>
     </div>
 
     <!-- 探索变量 -->
@@ -105,20 +87,14 @@ import { ref, computed } from 'vue';
 const expr = ref('');
 const solving = ref(false);
 const solutions = ref<Array<string>>([]);
-const pickerOpen = ref(false);         // 选择框开关
 const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
 const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
-
-function openPicker() {
-  pickerOpen.value = true;
-}
 
 // 选中某个解: 提取等号右边的纯 latex 作为后端缓存键
 function pickSolution(s: string) {
   selectedDisplay.value = s;
   const eqIdx = s.indexOf(' = ');
   selectedKey.value = eqIdx >= 0 ? s.slice(eqIdx + 3) : s;
-  pickerOpen.value = false;
 }
 
 function solve() {
@@ -256,5 +232,13 @@ setInterval(() => {
 .hint {
   font-size: 12px;
   color: #888;
+}
+
+.selected-solution {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(0, 128, 255, 0.1);
+  border: 1px solid rgba(0, 128, 255, 0.3);
 }
 </style>
