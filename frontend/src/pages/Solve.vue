@@ -109,12 +109,12 @@
       🔍 极值探索:{{ exploreError }}
     </div>
 
-    <!-- 函数值探索结果(纯文本,表达式上方已显示) -->
+    <!-- 函数值探索结果(后端返回 $latex = float$,用 v-katex 渲染) -->
     <div v-if="funcResult !== ''" class="func-result">
       <hr />
       <div>
-        📊 函数值 =
-        <b>{{ funcResult }}</b>
+        📊 函数值
+        <span v-katex>{{ funcResult }}</span>
         <span class="hint">(在 {{ funcValuesDisplay }} 处)</span>
       </div>
     </div>
@@ -196,9 +196,8 @@ const funcValuesReady = computed(
     && exploreSymsList.value.every((s) => funcValues.value[s] !== '' && funcValues.value[s] !== undefined),
 );
 
-// 计算函数值: 把变量值 dict 传给后端
+// 计算函数值: 把变量值 dict 传给后端(后端返回 $latex = float$ 双显示)
 function exploreFunc() {
-  const syms = exploreSyms.value.trim();
   const values: Record<string, number> = {};
   for (const s of exploreSymsList.value) {
     values[s] = Number(funcValues.value[s]);
@@ -209,12 +208,12 @@ function exploreFunc() {
   };
   if (exploreSource.value === 'solution') {
     window.pywebview.api.problem
-      .expore_func(selectedKey.value, syms, values, false)
+      .expore_func(selectedKey.value, values, false)
       .then(done)
       .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
   } else {
     window.pywebview.api.problem
-      .expore_func(customExpr.value, syms, values, true)
+      .expore_func(customExpr.value, values, true)
       .then(done)
       .catch((e) => { alert('函数值探索出错 qwq\n' + e); });
   }

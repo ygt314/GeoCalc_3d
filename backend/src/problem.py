@@ -656,7 +656,7 @@ class Problem:
         sss=self._eval_str_expr(choice) if custom else self._last_exprs[choice]
         return self._get_extrema(sss,sym_str)
    # 函数值探索入口，含调试输出（控制台）
-    def expore_func(self, choice: str, sym_str: str, values: dict, custom=False) -> str:
+    def expore_func(self, choice: str, values: dict, custom=False) -> str:
         '''
         choice:选择对应latex或自定义表达式
         sym_str:待求符号
@@ -665,8 +665,6 @@ class Problem:
         '''
         print('[debug]:choice',f'(custom is {custom})')
         print(choice)
-        # custom=True → choice 是自定义表达式字符串(DSL 解析)
-        # custom=False → choice 是求解结果的 latex 键(从缓存取)
         sss=self._eval_str_expr(choice) if custom else self._last_exprs[choice]
         # values 的键是字符串(如 {'t': 2}),需转成与表达式匹配的 SymPy Symbol
         # 注意: _eval_str_expr 创建的符号带 real=True,须用 symbols() 同样生成
@@ -674,5 +672,7 @@ class Problem:
         for k, v in values.items():
             sym = symbols(k, real=True)
             sub_map[sym if isinstance(sym, Symbol) else sym[0]] = v
-        # evalf() 返回 SymPy Float,不支持 Python 的 :g 格式,先转原生 float
-        return f"{float(sss.subs(sub_map).evalf()):g}"
+        ans = sss.subs(sub_map)
+        print('values:',values)
+        print("answer:",ans)
+        return f"$ {latex(ans)} = {float(ans.evalf()):g}$"

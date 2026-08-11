@@ -68,10 +68,9 @@ declare global {
           ) => Promise<Array<string>>;
 
           // 函数值探索: choice 同 expore_extrema, values 是 {变量名: 数值}
-          // 返回函数值的字符串
+          // 返回 "$ latex = float $" 双显示字符串
           expore_func: (
             choice: string,
-            sym_str: string,
             values: Record<string, number>,
             custom: boolean,
           ) => Promise<string>;

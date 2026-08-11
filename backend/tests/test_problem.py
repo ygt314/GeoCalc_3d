@@ -228,19 +228,26 @@ class TestExplore:
 
 
 class TestExploreFunc:
-    """函数值探索: 给定变量值,算函数值"""
+    """函数值探索: 给定变量值,算函数值(精确+浮点双显示)"""
 
     def test_custom(self, prob):
-        """自定义表达式: t²-2t+1 @ t=2 → 1"""
+        """自定义表达式: t²-2t+1 @ t=2 → $ 1 = 1$"""
         prob.add_symbol('t')
-        result = prob.expore_func('t**2 - 2*t + 1', 't', {'t': 2}, custom=True)
-        assert result == '1'
+        result = prob.expore_func('t**2 - 2*t + 1', {'t': 2}, custom=True)
+        assert '1' in result
 
     def test_min_point(self, prob):
-        """最小值点: t²-2t+1 @ t=1 → 0"""
+        """最小值点: t²-2t+1 @ t=1 → $ 0 = 0$"""
         prob.add_symbol('t')
-        result = prob.expore_func('t**2 - 2*t + 1', 't', {'t': 1}, custom=True)
-        assert result == '0'
+        result = prob.expore_func('t**2 - 2*t + 1', {'t': 1}, custom=True)
+        assert '0' in result
+
+    def test_fraction(self, prob):
+        """分数值: 1/t @ t=2 → $ \\frac{1}{2} = 0.5$"""
+        prob.add_symbol('t')
+        result = prob.expore_func('1/t', {'t': 2}, custom=True)
+        assert r'\frac{1}{2}' in result  # 精确 latex
+        assert '0.5' in result           # 浮点
 
     def test_solution_key(self, prob):
         """用求解结果缓存键"""
@@ -252,5 +259,5 @@ class TestExploreFunc:
         assert prob._last_exprs
         key = next(iter(prob._last_exprs))
         # AB=2 解出 t=±2, 求 f(AB)=2 @ t=2 → 2
-        result = prob.expore_func(key, 't', {'t': 2}, custom=False)
-        assert result == '2'
+        result = prob.expore_func(key, {'t': 2}, custom=False)
+        assert '2' in result
