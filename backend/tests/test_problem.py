@@ -192,11 +192,11 @@ class TestExplore:
         return next(iter(prob._last_exprs))
 
     def test_custom_expr(self, prob):
-        """自定义表达式: u²+v² 的驻点是 (0,0)"""
+        """自定义表达式: u²+v² 的驻点是 (0,0), 函数值 0 → (0,0,0)"""
         prob.add_symbol('u')
         prob.add_symbol('v')
         result = prob.expore_extrema('u**2 + v**2', 'u v', custom=True)
-        assert "('0', '0')" in result
+        assert '(0,0,0)' in result
 
     def test_solution_key(self, prob):
         """用求解结果: AB=2 解出 t=±2, 探索常数无驻点(返回空集)"""
@@ -211,12 +211,12 @@ class TestExplore:
         assert result == ['\\emptyset']  # 常数解无驻点
 
     def test_custom_dsl(self, prob):
-        """自定义表达式支持 DSL 记号: AB² 关于 t 的驻点"""
+        """自定义表达式支持 DSL 记号: AB² 关于 t 的驻点 (0, 函数值0)"""
         prob.add_symbol('t')
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', 't', '0', '0', '', '')
         result = prob.expore_extrema('AB**2', 't', custom=True)
-        assert "('0',)" in result
+        assert '(0,0)' in result
 
     def test_json_serializable(self, prob):
         """返回必须能 JSON 序列化(pywebview 桥接要求)"""
