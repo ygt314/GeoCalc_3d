@@ -1,52 +1,75 @@
 <template>
   <q-page>
     <h1>计算求解</h1>
+
+    <!-- ═══════════ ① 求解区(独立) ═══════════ -->
     <div>请输入要计算的表达式：</div>
     <q-input v-model="expr" dense />
-    <!-- 极值探索变量:用户自行决定,留空则跳过探索 -->
     <div class="container">
-      <label>极值探索变量(可选)</label>
-      <q-input
-        v-model="exploreSymsInput"
-        dense
-        placeholder="空格分隔,如 t u。留空则只求解"
-      />
-    </div>
-    <div class="container">
-      <!-- ① 求解按钮:求解后若填了变量,自动展示探索结果 -->
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
         > 🚀 求解！
       </q-btn>
-      <!-- ② 探索按钮:手动重新探索(换变量后点击) -->
-      <q-btn
-        :disable="exploreSymsInput.trim().length === 0 || exploring || !hasSolved"
-        color="secondary"
-        @click="explore"
-      > 🔍 重新探索
-      </q-btn>
-      <q-linear-progress indeterminate v-if="solving || exploring" />
+      <q-linear-progress indeterminate v-if="solving" />
       <div id="duration">用时 {{ duration }}</div>
     </div>
-
-    <!-- 求解结果 -->
     <div v-if="solutions.length > 0">
       <div>以下是所有可能的解：</div>
-      <div v-for="s in solutions" :key="s" v-katex>$$ {{ s }} $$</div>
+      <div
+        v-for="s in solutions"
+        :key="s"
+        class="solution-row"
+        :class="{ selected: selectedSolution === s }"
+        @click="selectedSolution = s"
+        v-katex
+      >$$ {{ s }} $$
+      </div>
+      <div class="hint">👆 点击某个解,可把它作为极值探索对象</div>
     </div>
 
-    <!-- ═══════════════════ 极值点探索结果 ═══════════════════ -->
+    <hr />
+
+    <!-- ═══════════ ② 极值探索区(独立) ═══════════ -->
+    <h2>🔍 极值点探索</h2>
+
+    <!-- 探索对象来源选择 -->
+    <div class="container">
+      <q-radio v-model="exploreSource" val="solution" label="用求解结果" />
+      <q-radio v-model="exploreSource" val="custom" label="自定义表达式" />
+    </div>
+
+    <!-- 自定义表达式输入(仅当选择自定义) -->
+    <div v-if="exploreSource === 'custom'" class="container">
+      <label>表达式</label>
+      <q-input v-model="customExpr" dense placeholder="如 t**2 - 2*t + 1" />
+    </div>
+    <!-- 用求解结果时,显示当前选中的解 -->
+    <div v-else-if="exploreSource === 'solution'" class="container">
+      <label>选中的解</label>
+      <q-input :model-value="selectedSolution || '(点击上方求解结果选择)'" dense readonly />
+    </div>
+
+    <!-- 探索变量 -->
+    <div class="container">
+      <label>探索变量</label>
+      <q-input v-model="exploreSyms" dense placeholder="空格分隔,如 t u" />
+    </div>
+
+    <div class="container">
+      <q-btn
+        :disable="!canExplore || exploring"
+        color="secondary"
+        @click="explore"
+      > 🔍 极值探索
+      </q-btn>
+      <q-linear-progress indeterminate v-if="exploring" />
+    </div>
+
+    <!-- 探索结果 -->
     <div v-if="exploreDone">
-      <hr />
-      <div>
-        <b>🔍 极值点探索</b>(对最近求解的表达式求偏导 = 0,变量:{{ exploreSyms }})
+      <div>可能的驻点：</div>
+      <div v-for="(e, i) in extrema" :key="i">
+        点{{ i + 1 }}: <span v-katex>$ {{ e }} $</span>
       </div>
-      <div v-if="extrema.length > 0">
-        <div>可能的驻点：</div>
-        <div v-for="(e, i) in extrema" :key="i">
-          点{{ i + 1 }}: <span v-katex>$ {{ e.latex }} $</span>
-        </div>
-      </div>
-      <div v-else>无驻点或无解(表达式可能是常量,或函数无驻点)</div>
     </div>
     <div v-else-if="exploreError" class="warn">
       🔍 极值探索:{{ exploreError }}
@@ -55,43 +78,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
+// ── 求解区 ──
 const expr = ref('');
-
 const solving = ref(false);
-const t1 = ref(0);
-const t2 = ref(0);
-
 const solutions = ref<Array<string>>([]);
-
-// ── 极值点探索(分步: 先求解,后探索;探索用最近一次求解的缓存) ──
-const exploreSymsInput = ref('');
-const exploreDone = ref(false);
-const exploreSyms = ref('');
-const extrema = ref<Array<{ latex: string; values: Array<number> }>>([]);
-const exploreError = ref('');
-const hasSolved = ref(false);       // 是否已求解过(没求解不能探索)
-const exploring = ref(false);
+const selectedSolution = ref('');   // 用户点击选中的解(探索对象)
 
 function solve() {
-  t1.value = t2.value = Date.now();
   solving.value = true;
   solutions.value = [];
-  exploreDone.value = false;
-  exploreError.value = '';
+  selectedSolution.value = '';
   window.pywebview.api.problem
     .solve(expr.value)
-    .then(async (result) => {
-      if (result.length === 0) {
-        result.push('无解');
-      }
+    .then((result) => {
       solutions.value = result;
-      hasSolved.value = true;  // 求解成功,解锁探索按钮
-      // 若用户填了探索变量,求解后自动展示探索结果
-      if (exploreSymsInput.value.trim().length > 0) {
-        await doExplore();
-      }
     })
     .catch((e) => {
       alert('求解出错 qwq\n' + e);
@@ -101,36 +103,65 @@ function solve() {
     });
 }
 
-// 极值探索:直接使用最近一次求解缓存的后端表达式,无需再传函数
-async function doExplore() {
-  const syms = exploreSymsInput.value.trim();
-  if (syms.length === 0) {
-    return;
+// ── 极值探索区 ──
+const exploreSource = ref<'solution' | 'custom'>('solution'); // 探索对象来源
+const customExpr = ref('');        // 自定义表达式
+const exploreSyms = ref('');       // 探索变量
+const exploring = ref(false);
+const exploreDone = ref(false);
+const extrema = ref<Array<string>>([]);
+const exploreError = ref('');
+
+// 是否可以探索
+const canExplore = computed(() => {
+  if (exploreSyms.value.trim().length === 0) return false;
+  if (exploreSource.value === 'solution') {
+    return selectedSolution.value.length > 0;   // 需选中一个解
   }
+  return customExpr.value.trim().length > 0;    // 需填自定义表达式
+});
+
+function explore() {
   exploring.value = true;
   exploreDone.value = false;
   exploreError.value = '';
   extrema.value = [];
-  try {
-    const result = await window.pywebview.api.problem.get_expore(syms);
-    extrema.value = result;
-    exploreSyms.value = syms;
-    exploreDone.value = true;
-  } catch (e) {
-    exploreError.value = String(e);
-  } finally {
-    exploring.value = false;
+  const syms = exploreSyms.value.trim();
+  if (exploreSource.value === 'solution') {
+    // 用求解结果: choice = 选中解的 LaTeX, custom=True(从缓存字典取)
+    window.pywebview.api.problem
+      .expore_extrema(selectedSolution.value, syms, true)
+      .then((result) => {
+        extrema.value = result;
+        exploreDone.value = true;
+      })
+      .catch((e) => {
+        exploreError.value = String(e);
+      })
+      .finally(() => {
+        exploring.value = false;
+      });
+  } else {
+    // 自定义表达式: choice = 表达式字符串, custom=False(DSL 解析)
+    window.pywebview.api.problem
+      .expore_extrema(customExpr.value, syms, false)
+      .then((result) => {
+        extrema.value = result;
+        exploreDone.value = true;
+      })
+      .catch((e) => {
+        exploreError.value = String(e);
+      })
+      .finally(() => {
+        exploring.value = false;
+      });
   }
 }
 
-// 探索按钮:手动触发(用于换变量后重新探索)
-function explore() {
-  void doExplore();
-}
-
-// 实现计时器
+// 计时器
 const duration = ref('00:00:00');
-
+const t1 = ref(0);
+const t2 = ref(0);
 setInterval(() => {
   if (solving.value) {
     t2.value = Date.now();
@@ -138,7 +169,6 @@ setInterval(() => {
     let h: number | string = Math.floor(t / 3600);
     let m: number | string = Math.floor((t % 3600) / 60);
     let s: number | string = Math.floor(t % 60);
-    // 在前面补 0
     h = h.toString().padStart(2, '0');
     m = m.toString().padStart(2, '0');
     s = s.toString().padStart(2, '0');
@@ -170,5 +200,25 @@ setInterval(() => {
 
 .warn {
   color: #f60;
+}
+
+.solution-row {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.solution-row:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.solution-row.selected {
+  background: rgba(0, 128, 255, 0.15);
+  outline: 1px solid rgba(0, 128, 255, 0.4);
+}
+
+.hint {
+  font-size: 12px;
+  color: #888;
 }
 </style>

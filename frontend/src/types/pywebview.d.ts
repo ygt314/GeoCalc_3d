@@ -58,11 +58,14 @@ declare global {
 
           solve: (expr: string) => Promise<Array<string>>;
 
-          // 极值点探索: 使用最近一次 solve 的缓存表达式(无需传函数),
-          // 只传变量列表(空格分隔)。返回驻点 [{latex, values}, ...]
-          get_expore: (
+          // 极值点探索: choice 是自定义表达式(custom=true,DSL 解析)
+          // 或求解结果的 LaTeX 键(custom=false,从缓存取)
+          // sym_str 变量列表(空格分隔)。返回驻点 LaTeX 字符串列表
+          expore_extrema: (
+            choice: string,
             sym_str: string,
-          ) => Promise<Array<{ latex: string; values: Array<number> }>>;
+            custom: boolean,
+          ) => Promise<Array<string>>;
         };
         logger: {
           warning: (msg) => Promise<void>;

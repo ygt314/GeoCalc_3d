@@ -15,7 +15,7 @@
           > 3D 几何计算器 <span v-katex v-if="Screen.width > 500">$\textit{3D Geometry Calculator}$</span>
         </q-toolbar-title>
 
-        <div v-katex id="version">$ v1.0.0 $</div>
+        <div v-katex id="version">$ v1.2.0 $</div>
       </q-toolbar>
     </q-header>
 

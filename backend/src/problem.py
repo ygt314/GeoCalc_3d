@@ -122,9 +122,9 @@ class Problem:
         # 用于临时存放正在添加的新对象依赖哪些对象
         self.requirements_tracker: set[MathObj] = set()
 
-        # 最近一次 solve 解出的目标表达式列表(供 get_expore 探索;
+        # 最近一次 solve 解出的目标表达式
         # 对"解"探索而非对原始输入表达式,仅存当前结果,换题即覆盖)
-        self._last_exprs: list = []
+        self._last_exprs: dict[str, Expr] = {}
 
     # ═══════════════════════════════════════════════════════
     # 第一部分：对象管理（抄 2D 原版，基本不改）
@@ -348,13 +348,13 @@ class Problem:
         return simplify(eval(expr))  # 不能直接用sympify，否则会自己造符号
 
     # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
-    # 实验性方法
-    def get_expore(self, sym_str: str = 'x y') -> list:
+    def _get_extrema(self, f: Expr, syms: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
 
         参数:
-            sym_str: 参与求解的未知数,用空格分隔(默认 'x y')
+            f: 待求解函数,sympy表达式
+            syms: 参与求解的未知数,用空格分隔(默认 'x y')
         返回:
             驻点列表,每项为字典 {latex: 展示用 LaTeX, values: [数值...]}
             (全部 JSON 可序列化;数值为 float,解不出的变量保留符号名)
@@ -366,31 +366,26 @@ class Problem:
             - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
               需要 JSON 序列化,SymPy 对象无法序列化
         """
-        if not self._last_exprs:
-            raise ValueError('还没有计算结果,请先点击"🚀 启动!"求解')
+        print("[debug_get_extrema]:f",f'(syms:{syms})')
+        print(f)
         # 定义符号变量(symbols('x y') → 元组, symbols('x') → 单个 Symbol,统一转列表)
-        xs = symbols(sym_str, real=True)
+        xs = symbols(syms, real=True)
         if not isinstance(xs, (tuple, list)):
             xs = [xs]
         extrema = []
-        # 对每个解分别求偏导解驻点(解可能有多个,如 ±√2)
-        for f in self._last_exprs:
-            # 求偏导并构造方程组
-            eqs = [Eq(diff(f, x_i), 0) for x_i in xs]  # ∂f/∂x = 0
-            # 解方程组
-            solutions = solve(eqs, xs, dict=True)
-            for sol in solutions:
-                if sol:
-                    # 数值转 float,解不出的变量保留符号名(字符串)
-                    values = tuple(
-                        float(v) if v.is_number else str(v)
-                        for v in (sol.get(x_i, x_i) for x_i in xs)
-                    )
-                    # LaTeX 展示: (x1, y1, ...)
-                    extrema.append({
-                        'latex': latex(tuple(values)),
-                        'values': list(values),
-                    })
+        # 求偏导并构造方程组
+        eqs = [Eq(diff(f, x_i), 0) for x_i in xs]  # ∂f/∂x = 0
+        # 解方程组
+        solutions = solve(eqs, xs, dict=True)
+        if not solutions:
+            return ["\\emptyset"]
+        for sol in solutions:
+            values = [sol.get(x_i, x_i) for x_i in xs]
+            # LaTeX 展示: (x1, y1, ...)
+            latexs = tuple(latex(i) for i in values)
+            extrema.append(str(latexs))
+        print("[debug_get_extrema]:极值点列表")
+        print(extrema)
         return extrema
     # ═══════════════════════════════════════════════════════
     # 第四部分：添加对象（add_* 系列）
@@ -663,36 +658,39 @@ class Problem:
     def solve(self, expr: str) -> list[str]:
         """
         🚀 启动！
-        :param expr: 要求解的目标的字符串表达式（如 AB、angABC、vABCD）
+        逻辑与 2D 相同，增加求值结果缓存
+        :param expr: 要求解的目标的字符串表达式
         :return: 所有可能的解的 LaTeX
         """
         left = to_raw_latex(expr)
-
+        
         target = Symbol('target')
         eqs = [Eq(target, self._eval_str_expr(expr))]
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
-        # 去重: 防止重复符号导致 SymPy 报 duplicate symbols given
-        symbols = list(dict.fromkeys(
-            [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]
-        ))
+        symbols = [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
         solutions = solve(eqs, symbols, dict=True)
-        
+        if not solutions:
+            return ['无解：\\emptyset']
         # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-        # 注意:conditions 不足时 SymPy 可能返回空列表或不含 target 的解,
-        # 这里跳过不含 target 的项(与 2D 原版行为一致:条件不足返回空)
-        result = set(
-            simplify(sqrtdenest(s[target]))
-            for s in solutions
-            if target in s
-        )
-        # 缓存"解"而非原始表达式: 极值探索是对解做偏导,
-        # 不是对输入表达式做(原始表达式可能是距离/坐标的组合)
-        # 注意: 条件不足时 solve 返回空,此时"解"就是原始表达式本身
-        # (用户此时想探索的正是该表达式的极值)
-        if result:
-            self._last_exprs = list(result)
-        else:
-            self._last_exprs = [self._eval_str_expr(expr)]
+        result = set(simplify(sqrtdenest(s[target])) 
+                     for s in solutions
+                     if target in s)
+        self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
+
+    # 极值点探索入口，含调试输出（控制台）
+    def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
+        '''
+        choice:选择对应latex或自定义表达式
+        sym_str:待求符号
+        custom:是否自定义
+        return:极值点latex列表
+        '''
+        print('[debug]:choice',f'(custom is {custom})')
+        print(choice)
+        # custom=True → choice 是自定义表达式字符串(DSL 解析)
+        # custom=False → choice 是求解结果的 latex 键(从缓存取)
+        sss=self._eval_str_expr(choice) if custom else self._last_exprs[choice]
+        return self._get_extrema(sss,sym_str)
