@@ -86,6 +86,10 @@ def to_raw_latex(expr: str) -> str:
         (r'\bangc([A-Z]{3})x([A-Z]{3})\b', r'平面\1 与 平面\2 所成角'),
         # ABC -> △ABC
         (r'\b([A-Z]{3})\b', r'\\triangle \1'),
+        # pABC -> 平面ABC
+        (r'\bp([A-Z]{3})\b', r'平面\1'),
+        # ABCD -> 平面ABCD
+        (r'\b([A-Z]{4})\b', r'平面\1'),
         # angABC -> ∠ABC
         (r'\bang([A-Z]{3})\b', r'\\angle \1'),
         # 删除多余点号
@@ -106,8 +110,8 @@ def to_raw_latex(expr: str) -> str:
         (r'\bd([A-Z])tp([A-Z]{3})\b', r'd_{\1 到 平面\2}'),
         # vABCD -> 四面体体积
         (r'\bv([A-Z])([A-Z]{3})\b', r'V_{四面体\1-\2}'),
-        # vABC-OPQ -> 三棱台（柱）体积
-        (r'\bv([A-Z]{3})-([A-Z]{3})\b', r'V_{三棱柱\1-\2}')
+        # vABC_OPQ -> 三棱台（柱）体积
+        (r'\bv([A-Z]{3})x([A-Z]{3})\b', r'V_{三棱柱\1-\2}')
     ]
     for pattern, repl in rules:
         expr = re.sub(pattern, repl, expr)

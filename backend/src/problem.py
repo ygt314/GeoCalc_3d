@@ -205,7 +205,7 @@ class Problem:
     # [improve_flag]暂时与2D一样使用（反）正余弦值
     def _get_plane_normal(self, name: str) -> Matrix:
         """平面法向量，sympy会自动化简"""
-        return Matrix(self._get_plane(name[0:3]).normal_vector)
+        return Matrix(self._get_plane(name[1:4]).normal_vector)
     
     def _get_angv(self, vv: str) -> Expr:
         """angvABCD 向量夹角 <AB,CD> [0, pi)"""
@@ -215,13 +215,13 @@ class Problem:
 
     def _get_angr(self, m: str,l: str,n: str) -> Expr:
         """angrABCD 二面角 ∠A-BC-D [0, pi)"""
-        v1 = self._get_plane_normal(m+l)
-        v2 = self._get_plane_normal(n+l)
+        v1 = self._get_plane_normal('p'+m+l)
+        v2 = self._get_plane_normal('p'+n+l)
         return acos(v1.dot(v2) / (v1.norm() * v2.norm()))
 
     def _get_angc(self,a: str,b: str) -> Expr:
         """angcAB_CD 所成角 AB与CD [0, pi/2]"""
-        vn = lambda x:self._get_vec(x) if len(x)==2 else self._get_plane_normal(x[0:3])
+        vn = lambda x:self._get_vec(x) if len(x)==2 else self._get_plane_normal('p'+x[0:3])
         v1,v2 = vn(a),vn(b)
         vv = v1.norm() * v2.norm()
         if len(a) == len(b):
@@ -322,13 +322,13 @@ class Problem:
             # 两个大写字母的向量
             (r'\bvec([A-Z]{2})\b', r"self._get_vec('\1')"),
             # 平面法向量
-            (r'\bn([A-Z]{3})\b', r"self._get_plane_normal('\1')"),
+            (r'\bn([A-Z]{3})\b', r"self._get_plane_normal('p\1')"),
             # 三角形面积
             (r'\bSt([A-Z]{3})\b', r"self._get_triangle_area('\1')"),
             # 四面体体积
             (r'\bv([A-Z]{4})\b', r"self._get_tetrahedron_volume('\1')"),
             # 三棱台（柱）体积
-            (r'\bv([A-Z]{3})-([A-Z]{3})\b', r"self._get_Ss_volume('\1','\2')"),
+            (r'\bv([A-Z]{3})_([A-Z]{3})\b', r"self._get_Ss_volume('\1','\2')"),
             # 点到直线的距离
             (r'\bd([A-Z])t([A-Z]{2})\b', r"self._get_distance_from_point_to_line('\1','\2')"),
             # 点到平面距离

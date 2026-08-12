@@ -112,11 +112,28 @@ export function areBothValidTriangleNames(input1: string, input2: string) {
 // ═══════════════════════════════════════════════
 
 /**
- * 是合法的平面名
- * 是三个不同的大写字母，且均在已有的点里即可（如 ABC）
+ * 是合法的平面名（3D 版支持两种写法,与三角形 'ABC' 区分）:
+ *   - 'pABC' : p + 三个不同大写字母（如 pABC → 平面ABC）
+ *   - 'ABCD' : 四个不同大写字母（如 ABCD → 平面ABCD,四点确定/表示平面）
+ * 注意: 三字母裸写 'ABC' 表示三角形,不是平面!
  */
 export function isValidPlaneName(name: string) {
-  return isValidPolygonName(name, 3);
+  if (name.startsWith('p') && name.length === 4) {
+    return isValidPolygonName(name.slice(1), 3);  // pABC → ABC 三点
+  }
+  return isValidPolygonName(name, 4);             // ABCD → 四点
+}
+
+/**
+ * 平面名统一转换为后端法向量方法需要的 'pABC' 格式:
+ *   - 'pABC' → 'pABC'（不变）
+ *   - 'ABCD' → 'pABC'（取前三点加 p）
+ */
+export function normalizePlaneName(name: string): string {
+  if (name.startsWith('p')) {
+    return name;
+  }
+  return 'p' + name.slice(0, 3);
 }
 
 /**
