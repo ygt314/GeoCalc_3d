@@ -477,37 +477,37 @@ class Problem:
         """两表达式相等（3D 版不改）"""
         return [Eq(self._eval_str_expr(input1), self._eval_str_expr(input2))]
     # 2D 原版的平行/垂直是用一般式系数（a1*b2 == a2*b1）——3D 里要换成方向向量！
-    @AddBinCond(r'\\parallel')
+    @AddBinCond(r'\parallel')
     def add_line_parallel_line(self, input1: str, input2: str):
         """线线平行：方向向量叉积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_vec(input2)
         return [self._vec_eq(v1,v2)]
 
-    @AddBinCond(r'\\perp')
+    @AddBinCond(r'\perp')
     def add_line_perp_line(self, input1: str, input2: str):
         """线线垂直：方向向量点积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_vec(input2)
         return [self._vec_eq(v1,v2,1)]
     # 面面平行：法向量叉积 = 0；面面垂直：法向量点积 = 0
-    @AddBinCond(r'\\parallel')
+    @AddBinCond(r'\parallel')
     def add_plane_parallel_plane(self, input1: str, input2: str):
         """面面平行：方向向量叉积 = 0"""
         v1 = self._get_plane_normal(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2)]
 
-    @AddBinCond(r'\\perp')
+    @AddBinCond(r'\perp')
     def add_plane_perp_plane(self, input1: str, input2: str):
         """面面垂直：方向向量点积 = 0"""
         v1 = self._get_plane_normal(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2,1)]
     # 线面平行：方向·法 = 0；线面垂直：方向∥法（叉积=0）
-    @AddBinCond(r'\\parallel')
+    @AddBinCond(r'\parallel')
     def add_line_parallel_plane(self, input1: str, input2: str):
         """线面平行：方向向量叉积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2,1)]
 
-    @AddBinCond(r'\\perp')
+    @AddBinCond(r'\perp')
     def add_line_perp_plane(self, input1: str, input2: str):
         """线面垂直：方向向量点积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_plane_normal(input2)

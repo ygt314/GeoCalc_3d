@@ -111,12 +111,17 @@ class TestGetters:
         assert prob._get_tetrahedron_volume('ABCD') == Rational(1, 6)
 
     def test_get_plane_normal(self, prob):
-        """xy 平面法向量 = (0,0,1)"""
+        """xy 平面法向量 = (0,0,1)（平面语法: pABC 或 ABCD）"""
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', '1', '0', '0', '', '')
         prob.add_point('C', '0', '1', '0', '', '')
-        n = prob._get_plane_normal('ABC')
+        prob.add_point('D', '1', '1', '0', '', '')
+        n = prob._get_plane_normal('pABC')
         assert n == __import__('sympy').Matrix([0, 0, 1])
+        # 四点形式 ABCD: 后端取 name[1:4]=BCD,法向量可能反向
+        # (法向量反向仍是同一平面,平行/垂直判断不受影响)
+        n2 = prob._get_plane_normal('ABCD')
+        assert n2 == __import__('sympy').Matrix([0, 0, -1])
 
 
 class TestEvalExpr:
