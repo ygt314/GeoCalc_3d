@@ -100,9 +100,9 @@ uv run python tests/run_all.py # centralized runner
 
 See [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md).
 
-## Sample Problem
+## Sample Problems
 
-`backend/2025GC1.gc.pkl` is a sample problem (find coordinates of point O equidistant from several points). Load it via "Load from file" in the app; details in [backend/2025GC1.example.md](backend/2025GC1.example.md).
+The [example_pkl/](example_pkl/) directory holds sample problems (2020/2025 Gaokao variants, personal tests, etc.). Load them via "Load from file" in the app; see [example_pkl/README.md](example_pkl/README.md).
 
 ## License
 

@@ -102,7 +102,7 @@ uv run python tests/run_all.py # 集中验证入口
 
 ## 示例题目
 
-`backend/2025GC1.gc.pkl` 是一道示例题（空间点 O 到多点等距求坐标），应用内"从文件加载"即可体验，说明见 [backend/2025GC1.example.md](backend/2025GC1.example.md)。
+[example_pkl/](example_pkl/) 目录存放示例题目（2020/2025 高考真题改编、个人测试等），应用内"从文件加载"即可体验，说明见 [example_pkl/README.md](example_pkl/README.md)。
 
 ## 许可证
 
