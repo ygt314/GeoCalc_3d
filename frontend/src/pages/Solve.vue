@@ -127,6 +127,10 @@ import { ref, computed } from 'vue';
 // ── 求解区 ──
 const expr = ref('');
 const solving = ref(false);
+
+const t1 = ref(0);
+const t2 = ref(0);
+
 const solutions = ref<Array<string>>([]);
 const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
 const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
@@ -139,6 +143,7 @@ function pickSolution(s: string) {
 }
 
 function solve() {
+  t1.value = t2.value = Date.now();
   solving.value = true;
   solutions.value = [];
   selectedDisplay.value = '';
@@ -267,8 +272,7 @@ function explore() {
 
 // 计时器
 const duration = ref('00:00:00');
-const t1 = ref(0);
-const t2 = ref(0);
+
 setInterval(() => {
   if (solving.value) {
     t2.value = Date.now();
