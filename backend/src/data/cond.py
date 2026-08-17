@@ -61,9 +61,9 @@ def to_raw_latex(expr: str) -> str:
     vABC-OPQ -> 三棱台（柱）体积
     """
     expr = (mark_vec_coord(expr)
-                .replace('deg', '* gcdeg')  # SymPy 内有个函数就叫 ``deg``，故在此做区分
+                .replace('deg', '* gcdeg') # SymPy 内有个函数就叫 ``deg``，故在此做区分
+                .replace(' cross ', 'xxx') # 叉乘顺序不变
                 .replace('_','x') # sympify 后 _ 会变成 _{}
-                .replace('cross', '×')
                 .replace('dot', '*'))
 
     expr, mapping = map_vec_coord(expr)
@@ -77,6 +77,8 @@ def to_raw_latex(expr: str) -> str:
     rules = [
         # ·gcdeg -> °
         (r'\\cdot\s+gcdeg', r'^{\\circ}'),
+        # 叉乘
+        (r'xxx', r' \\times '),
         # vecAB -> \overrightarrow{AB}
         (r'\bvec([A-Z]{2})\b', r'\\overrightarrow{\1}'),
         # angcAB_CD -> 所成角

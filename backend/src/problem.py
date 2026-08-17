@@ -631,6 +631,8 @@ class Problem:
         
         target = Symbol('target')
         eqs = [Eq(target, self._eval_str_expr(expr))]
+        print('[debug]:总方程')
+        print(eqs)
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
         symbols = [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
