@@ -1,32 +1,37 @@
 # 高考几何真题引导(高考II卷)
 目录/文件扩展名:`GC2/.gc.pkl`
 ## 2020高考II卷文科
-![2020高考II卷文科](https://img.eol.cn/e_images/gk/2020/2020shiti/qgj1/sxw04.jpg)
+![2020高考II卷文科](https://gaokao.eol.cn/shiti/zhenti/202007/W020200708663568153701.png)
 > **加载文件名**:2020GC2w
+<br>**坐标系Mxyz**:`M` `MA` `MB` `MN`
+<br>**点名称对应**:A1→G B1→H C1→I
 
-- (1) 证明:平面PAB⊥平面PAC;
-> **输入**:`nPAB dot nPAC`
+- (1)证明:AA₁//MN，且平面A₁AMN⊥平面EB₁C₁F;
+> **输入**:`(vecAG cross vecMN) dot (vecAG cross vecMN)` `nGAMN dot nEHIF`
 
-> **求解**:`0`
+> **求解**:`0` `0`
 
-- (2) 设DO=√2，圆锥的侧面积为√5π，求三棱锥P-ABC 的体积.
-> **输入**:`vPABC`
+- (2)设O为△A₁B₁C₁的中心.若AO=AB=6，AO//平面EB₁C₁F，且∠MPN=π/3，求四棱锥B-EB₁C₁F的体积.
+> **输入**:`vBFEH+vBHIF`
 
-> **求解**:`√6/8`
+> **求解**:`24`
 
 ## 2020高考II卷理科
-![2020高考II卷理科](https://img.eol.cn/e_images/gk/2020/2020shiti/qgj1/sxl04.jpg)
+![2020高考II卷理科](https://img.eol.cn/e_images/gk/2020/2020shiti/qgj2/sxl05.jpg)
+![](https://img.eol.cn/e_images/gk/2020/2020shiti/qgj2/sxl06.jpg)
 > **加载文件名**:2020GC2l
+<br>**坐标系Mxyz**:`M` `MA` `MB` `MN`
+<br>**点名称对应**:A1→G B1→H C1→I
 
-- (1)证明:PA⊥平面PBC;
-> **输入**:`(vecPA cross nPBC) dot (vecPA cross nPBC)`
+- (1)证明:AA₁//MN，且平面A₁AMN⊥平面EB₁C₁F;
+> **输入**:`(vecAG cross vecMN) dot (vecAG cross vecMN)` `nGAMN dot nEHIF`
 
-> **求解**:`0`
+> **求解**:`0` `0`
 
-- (2)求二面角B-PC-E的余弦值.
-> **输入**:`cos(angrBPCE)`
+- (2)）设O为△A₁B₁C₁的中心，若AO//平面EB₁C₁F，且AO=AB，求直线B₁E与平面A₁AMN所成角的正弦值.
+> **输入**:`sin(angcHE_AMN)`
 
-> **求解**:`2√5/5`
+> **求解**:`√10/10`
 
 ## 2020高考II卷文理科通用版
 因为几何背景构图是一样的，所以通过简化输入得到通用版<br>
@@ -34,9 +39,10 @@
 > **加载文件名**:2020GC2
 
 输入和求解同上
-## 2020新高考II卷(仅山东)
-![2020新高考II卷](https://gaokao.eol.cn/shiti/zhenti/202007/W020200711021583000011.png)
+## 2020新高考II卷(仅海南)
+![2020新高考II卷](https://gaokao.eol.cn/shiti/sx/202102/W020210222596819451153.jpg)
 > **加载文件名**:2020GC2s
+<br>**坐标系Dxyz**:`D` `DA` `DC` `DP`
 <br>**注**:l就是PQ
 
 - (1）证明：l⊥平面PDC;
@@ -44,46 +50,45 @@
 
 > **求解**:`0`
 
-- (2)已知PD=AD=1，Q为l上的点，求PB与平面QCD所成角的正弦值的最大值.
+- (2)已知PD=AD=1，Q为l上的点，QB=√2，求PB与平面QCD所成角的正弦值.
 > **输入**:`sin(angcPB_QCD)`
 
-> **求解**:`无解`(当前绝对值方程无法化简)
-
-> **探索**(自定义，不用选择求解表达式):表达式→`sin(angcPB_QCD)` 变量→`m`
-
-> **驻点**:`(1,√6/3)`
-
-> **函数值**:m=0 → `√3/3=0.577`...
+> **求解**:`√6/3`
 
 ## 2021新高考II卷
-![2021新高考II卷](https://img.eol.cn/e_images/gk/2020/2021sj/xgk1/sx4.jpg)
+![2021新高考II卷](https://img.eol.cn/e_images/gk/2020/2021sj/xgk2/sxd13.png)
+![](https://img.eol.cn/e_images/gk/2020/2021sj/xgk2/sxd14.png)
+![](https://img.eol.cn/e_images/gk/2020/2021sj/xgk2/sxd15.png)
 > **加载文件名**:2021GC2
+<br>**坐标系Oxyz**:`(0,0,0)` `x向外` `OD` `OQ`
 
-- (1) 证明:OA⊥CD;
-> **输入**:`OA dot CD`
+- (1)证明:平面QAD⊥平面ABCD;
+> **输入**:`nQAD dot nABC`
 
 > **求解**:`0`
 
-- (2)若△OCD是边长为1的等边三角形，点E在棱AD上.DE=2EA.且二面角E-BC-D的大小为45°，求三棱锥A-BCD的体积.
-> **输入**:`vABCD`
+- (2)求二面角B-QD-A的平面角的余弦值.
+> **输入**:`cos(angrBQDA)`
 
-> **求解**:`√3/6`
+> **求解**:`2/3`
 
 ## 2022新高考II卷
-![2022新高考II卷](https://img.eol.cn/e_images/gk/2022/2022st/xgk1/sxd10.png)
-![](https://img.eol.cn/e_images/gk/2022/2022st/xgk1/sxd11.png)
+![2022新高考II卷](https://img.eol.cn/e_images/gk/2022/2022st/xgk2/sxd11.jpg)
+![](https://img.eol.cn/e_images/gk/2022/2022st/xgk2/sxd12.jpg)
+![](https://img.eol.cn/e_images/gk/2022/2022st/xgk2/sxd13.jpg)
 > **加载文件名**:2022GC2
-<br>**注**:点名称对应 A1→E B1→F C1→G
+<br>**坐标系Axyz**:`A` `AB` `AC` `z向上`
+![建系图](https://img.eol.cn/e_images/gk/2022/2022st/xgk2/sxd14.jpg)
 
-- (1)求A到平面A1BC的距离;
-> **输入**:`dAtpEBC`
+- (1)求证:OE//平面PAC;
+> **输入**:`vecOE dot nPAC`
 
-> **求解**:`√2`
+> **求解**:`0`
 
--  （2）设D为AC的中点，AA1=AB，平面ABC⊥平面 ABB1A1，求二面角A-BD-C的正弦值.
-> **输入**:`sin(angrABDC)`
+- (2)若∠ABO=∠CBO=30°，PO=3，PA=5，求二面角C-AE-B的余弦值.
+> **输入**:`cos(angrCAEB)`
 
-> **求解**:`√3/2`
+> **求解**:`11/13`
 
 ## 2023新高考II卷
 
