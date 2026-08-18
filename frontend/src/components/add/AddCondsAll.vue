@@ -16,9 +16,10 @@ import {
   areBothValidLineNames,
   areBothValidPlaneNames,
   isValidLineAndPlaneNames,
+  isValidPointAndPlaneNames,
   // TODO(你补全): 按需引入你需要的校验函数
   // areBothValidTriangleNames, isValidTriangleName,
-  // isValidTetrahedronName, isValidPointAndPlaneNames,
+  // isValidTetrahedronName,
 } from 'components/add/validityCheck';
 
 const problem = window.pywebview.api.problem;
@@ -57,6 +58,12 @@ const addBinCondPropsArray: Array<AddBinCondProps> = [
     condType: '线面垂直',
     validityCheckFunc: isValidLineAndPlaneNames,
     submitFunc: problem.add_line_perp_plane,
+  },
+  {
+    relOp: '\\in',
+    condType: '点在平面',
+    validityCheckFunc: isValidPointAndPlaneNames,
+    submitFunc: problem.add_point_in_plane,
   },
   {
     relOp: '\\parallel',

@@ -42,6 +42,8 @@ declare global {
           add_line_perp_plane: AddBinCondFunc;
           add_plane_parallel_plane: AddBinCondFunc;
           add_plane_perp_plane: AddBinCondFunc;
+          // 点在平面(∈): input1=点, input2=平面(pABC/ABCD)
+          add_point_in_plane: AddBinCondFunc;
           // TODO(你补全): 若后端新增其它条件方法,在这里补声明
           // 2D 的 add_parallel/add_cong 等已移除(3D 不做平面几何条件)
 

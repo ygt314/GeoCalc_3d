@@ -497,27 +497,42 @@ class Problem:
     # 面面平行：法向量叉积 = 0；面面垂直：法向量点积 = 0
     @AddBinCond(r'\parallel')
     def add_plane_parallel_plane(self, input1: str, input2: str):
-        """面面平行：方向向量叉积 = 0"""
+        """面面平行：法向量叉积 = 0"""
         v1 = self._get_plane_normal(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2)]
 
     @AddBinCond(r'\perp')
     def add_plane_perp_plane(self, input1: str, input2: str):
-        """面面垂直：方向向量点积 = 0"""
+        """面面垂直：法向量点积 = 0"""
         v1 = self._get_plane_normal(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2,1)]
     # 线面平行：方向·法 = 0；线面垂直：方向∥法（叉积=0）
     @AddBinCond(r'\parallel')
     def add_line_parallel_plane(self, input1: str, input2: str):
-        """线面平行：方向向量叉积 = 0"""
+        """线面平行：方向向量与法向量点积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2,1)]
 
     @AddBinCond(r'\perp')
     def add_line_perp_plane(self, input1: str, input2: str):
-        """线面垂直：方向向量点积 = 0"""
+        """线面垂直：方向向量与法向量叉积 = 0"""
         v1 = self._get_vec(input1); v2 = self._get_plane_normal(input2)
         return [self._vec_eq(v1,v2)]
+
+    # 点与直线的关系省略，添加点支持绑定直线
+    @AddBinCond(r'\in')
+    def add_point_in_plane(self, p: str, pp: str):
+        '''点在平面，可以绕过部分集合运算'''
+        # 平面名统一补 p 前缀(兼容 'ABC' 与 'pABC' 两种写法),
+        # 这样 pp[1] 才是平面第一个点(如 pABC → A),pp[0] 是前缀 p
+        if not pp.startswith('p'):
+            pp = 'p' + pp
+        # 过点 p 与平面上第一点的直线 ∥ 该平面 → 等价于 p ∈ 平面
+        # 注意: 不能调用被 @AddBinCond 装饰的 add_line_parallel_plane
+        # (装饰后直接调用会执行添加流程并返回 None),这里写裸方程逻辑
+        v1 = self._get_vec(p + pp[1])
+        v2 = self._get_plane_normal(pp)
+        return [self._vec_eq(v1, v2, 1)]
     # [improve_flag]几何元素集合关系处理
     # ═══════════════════════════════════════════════════════
     # 第六部分：查询 / 删除 / 存取（抄 2D 原版，几乎不改）
