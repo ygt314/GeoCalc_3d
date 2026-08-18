@@ -23,9 +23,11 @@ backend/src/log/
 log/
 *.log
 
-# ── 几何题存档(默认忽略,保留示例目录) ──
+# ── 几何题存档(默认忽略,保留示例目录及子目录) ──
 *.gc.pkl
 !example_pkl/*.gc.pkl
+!example_pkl/GC1/*.gc.pkl
+!example_pkl/GC2/*.gc.pkl
 
 # ── 编辑器 ──
 .vscode/*
