@@ -73,6 +73,27 @@ class TestAddObjects:
         with pytest.raises(ValueError):
             prob.add_symbol('a')
 
+    def test_point_in_plane(self, prob):
+        """点在平面: P(全未知) ∈ pABC → zP=0 被约束"""
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', '1', '0', '0', '', '')
+        prob.add_point('C', '1', '1', '0', '', '')
+        prob.add_point('P', 'x', 'y', 'z', '', '')   # 全未知
+        prob.add_point_in_plane('P', 'pABC')         # 必须带 p 前缀
+        result = prob.solve('zP')
+        assert any('z_P = 0' in r for r in result)
+
+    def test_point_in_plane_requires_p(self, prob):
+        """点在平面: 平面名必须带 p 前缀(裸 ABC 会报错)"""
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', '1', '0', '0', '', '')
+        prob.add_point('C', '1', '1', '0', '', '')
+        prob.add_point('P', 'x', 'y', 'z', '', '')
+        import pytest
+        # 裸 ABC: _get_plane_normal('ABC') 取 name[1:4]='BC'(长度不足)→ 报错
+        with pytest.raises(Exception):
+            prob.add_point_in_plane('P', 'ABC')
+
 
 class TestGetters:
     """几何访问器"""

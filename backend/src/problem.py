@@ -523,10 +523,6 @@ class Problem:
     @AddBinCond(r'\in')
     def add_point_in_plane(self, p: str, pp: str):
         '''点在平面，可以绕过部分集合运算'''
-        # 平面名统一补 p 前缀(兼容 'ABC' 与 'pABC' 两种写法),
-        # 这样 pp[1] 才是平面第一个点(如 pABC → A),pp[0] 是前缀 p
-        if not pp.startswith('p'):
-            pp = 'p' + pp
         # 过点 p 与平面上第一点的直线 ∥ 该平面 → 等价于 p ∈ 平面
         # 注意: 不能调用被 @AddBinCond 装饰的 add_line_parallel_plane
         # (装饰后直接调用会执行添加流程并返回 None),这里写裸方程逻辑
