@@ -291,7 +291,7 @@ class Problem:
         angcAB_CD 所成角 AB与CD
         dAtpBCD → d_{A 到 平面BCD} = |n \\dot AB|/|n|
         vABCD 四面体体积 V_{A-BCD} = |AB \\dot (BC \\cross CD)|/6
-        vABC-OPQ -> 三棱台(柱）体积
+        vABC_OPQ -> 三棱台(柱）体积
         """
         expr = mark_vec_coord(expr)
         rules = [
@@ -345,11 +345,8 @@ class Problem:
             f: 待求解函数,sympy表达式
             syms: 参与求解的未知数,用空格分隔(默认 'x y')
         返回:
-            驻点列表,每项为字典 {latex: 展示用 LaTeX, values: [数值...]}
-            (全部 JSON 可序列化;数值为 float,解不出的变量保留符号名)
+            驻点列表,每项为Latex结果
         注意:
-            - 直接使用最近一次 solve() 解出的目标表达式列表(self._last_exprs),
-              对每个解求偏导;先 solve 再 explore
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
             - 只解多项式方程组,复杂函数可能无解或很慢
             - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
@@ -632,10 +629,12 @@ class Problem:
         target = Symbol('target')
         eqs = [Eq(target, self._eval_str_expr(expr))]
         print('[debug]:总方程')
-        print(eqs)
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
         symbols = [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
+        print(eqs)
+        print('[debug]:未知数')
+        print(symbols)
         solutions = solve(eqs, symbols, dict=True)
         if not solutions:
             return ['无解：\\emptyset']
@@ -646,6 +645,7 @@ class Problem:
         self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
+    # [improve_flag]向量求解，设置多个target标记，避免多次手动点积
     # 极值点探索入口，含调试输出（控制台）
     def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
         '''
