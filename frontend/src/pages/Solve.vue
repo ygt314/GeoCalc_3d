@@ -5,16 +5,14 @@
     <!-- ═══════════ ① 求解区(独立) ═══════════ -->
     <div>请输入要计算的表达式：</div>
     <q-input v-model="expr" dense />
+    <!-- 求解类型选择: 标量 / 向量 -->
+    <div class="container">
+      <q-radio v-model="solveType" val="scalar" label="标量求解" />
+      <q-radio v-model="solveType" val="vector" label="向量求解" />
+    </div>
     <div class="container">
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
         > 🚀 求解！
-      </q-btn>
-      <!-- 向量求解: 对向量表达式解出三个分量 -->
-      <q-btn
-        :disable="expr.length === 0 || solving"
-        color="teal"
-        @click="solveVec"
-      > 📐 向量求解
       </q-btn>
       <q-linear-progress indeterminate v-if="solving" />
       <div id="duration">用时 {{ duration }}</div>
@@ -148,17 +146,30 @@ const vecSolutions = ref<Array<string>>([]);   // 向量求解结果
 const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
 const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
 
-// 向量求解: 后端对向量表达式解三个分量
-function solveVec() {
+// 求解类型: scalar 标量 / vector 向量
+const solveType = ref<'scalar' | 'vector'>('scalar');
+
+// 按类型分发求解: 标量走 solve,向量走 solve_vec
+function solve() {
+  t1.value = t2.value = Date.now();
   solving.value = true;
+  solutions.value = [];
   vecSolutions.value = [];
-  window.pywebview.api.problem
-    .solve_vec(expr.value)
+  selectedDisplay.value = '';
+  selectedKey.value = '';
+  const doSolve = solveType.value === 'vector'
+    ? window.pywebview.api.problem.solve_vec(expr.value)
+    : window.pywebview.api.problem.solve(expr.value);
+  doSolve
     .then((result) => {
-      vecSolutions.value = result;
+      if (solveType.value === 'vector') {
+        vecSolutions.value = result;
+      } else {
+        solutions.value = result;
+      }
     })
     .catch((e) => {
-      alert('向量求解出错 qwq\n' + e);
+      alert('求解出错 qwq\n' + e);
     })
     .finally(() => {
       solving.value = false;
@@ -170,25 +181,6 @@ function pickSolution(s: string) {
   selectedDisplay.value = s;
   const eqIdx = s.indexOf(' = ');
   selectedKey.value = eqIdx >= 0 ? s.slice(eqIdx + 3) : s;
-}
-
-function solve() {
-  t1.value = t2.value = Date.now();
-  solving.value = true;
-  solutions.value = [];
-  selectedDisplay.value = '';
-  selectedKey.value = '';
-  window.pywebview.api.problem
-    .solve(expr.value)
-    .then((result) => {
-      solutions.value = result;
-    })
-    .catch((e) => {
-      alert('求解出错 qwq\n' + e);
-    })
-    .finally(() => {
-      solving.value = false;
-    });
 }
 
 // ── 极值探索区 ──
