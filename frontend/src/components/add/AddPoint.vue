@@ -1,5 +1,9 @@
 <template>
-  <q-btn :icon="ionAddOutline" @click="dialogOpen = true">添加点</q-btn>
+  <div class="point-btns">
+    <q-btn :icon="ionAddOutline" @click="dialogOpen = true">添加点</q-btn>
+    <!-- 快速添加原点 (0,0,0) -->
+    <q-btn :icon="ionLocateOutline" @click="originOpen = true">添加原点</q-btn>
+  </div>
   <q-dialog v-model="dialogOpen" persistent>
     <q-card>
       <q-form @reset="reset" @submit="submit">
@@ -40,10 +44,28 @@
       </q-form>
     </q-card>
   </q-dialog>
+
+  <!-- 添加原点弹框: 只需名称,坐标自动 (0,0,0) -->
+  <q-dialog v-model="originOpen" persistent>
+    <q-card>
+      <q-form @reset="originReset" @submit="submitOrigin">
+        <q-card-section>
+          <h1>添加原点</h1>
+          <h2>名称(通常是 O)</h2>
+          <q-input v-model="originName" dense />
+          <div class="hint">原点坐标为 (0, 0, 0)</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup type="reset">取消</q-btn>
+          <q-btn type="submit" class="primary" :disable="!isValidOriginName">确认</q-btn>
+        </q-card-actions>
+      </q-form>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ionAddOutline } from '@quasar/extras/ionicons-v8';
+import { ionAddOutline, ionLocateOutline } from '@quasar/extras/ionicons-v8';
 import { ref, computed } from 'vue';
 import { isValidNewPointName } from 'components/add/validityCheck';
 import { useDataStore } from 'stores/data';
@@ -57,6 +79,32 @@ const y_str = ref('');
 const z_str = ref('');
 const line1 = ref('');
 const line2 = ref('');
+
+// ── 原点添加 ──
+const originOpen = ref(false);
+const originName = ref('');
+
+// 原点名称合法: 与普通点相同(单个大写字母,未占用)
+const isValidOriginName = computed(
+  () => isValidNewPointName(originName.value) && !dataStore.pointNames.includes(originName.value),
+);
+
+function originReset() {
+  originName.value = '';
+}
+
+function submitOrigin() {
+  window.pywebview.api.problem
+    .add_O_point(originName.value)
+    .then(() => {
+      dataStore.pointNames.push(originName.value);
+      originOpen.value = false;
+      originReset();
+    })
+    .catch((e) => {
+      alert('添加原点失败 qwq\n' + e);
+    });
+}
 
 const notEmpty = (str: string) => str.length > 0;
 /**
@@ -109,6 +157,11 @@ function submit() {
 </script>
 
 <style scoped>
+.point-btns {
+  display: flex;
+  gap: 0.5em;
+}
+
 .container {
   display: flex;
   align-items: center;
@@ -118,5 +171,11 @@ function submit() {
 
 .container .q-input {
   flex-grow: 1;
+}
+
+.hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
 }
 </style>

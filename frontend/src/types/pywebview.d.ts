@@ -31,6 +31,9 @@ declare global {
             line2: string,
           ) => Promise<null>;
 
+          // 快速添加原点 (0,0,0)
+          add_O_point: (name: string) => Promise<null>;
+
           // 3D 条件方法(与 problem.py 一一对应)
           add_expr_eq: AddBinCondFunc;
           add_line_parallel_line: AddBinCondFunc;

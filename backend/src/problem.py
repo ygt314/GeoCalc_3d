@@ -3,7 +3,7 @@
 这是整个项目的"大脑"。2D 原版 478 行，本文件是骨架 + 详细注释，
 核心实现（TODO 标注处）由你对照 2D 原版手写补全 —— 这正是学习的目的。
 
-## Problem 的职责（记住这张地图）
+Problem 的职责（记住这张地图）
 
   1. 管理所有数学对象：self.math_objs（id → 对象）
   2. 维护依赖图：requirements_tracker + track_requirement（装饰器）
@@ -11,7 +11,7 @@
   4. 把几何条件翻译成代数方程：add_* 系列方法（@AddCond 装饰器）
   5. 求解：solve() —— 把所有方程丢给 SymPy 的 solve
 
-## 2D → 3D 核心变化清单（你在 TODO 处要做的）
+2D → 3D 核心变化清单（你在 TODO 处要做的）
 
   - 点的坐标从 (x, y) → (x, y, z)，所有 _get_* 方法加 z 分量
   - _get_line（Line2D）→ 线在 3D 里不能再用"一般式 ax+by+c=0"表示！
@@ -19,6 +19,9 @@
   - 斜率 k / 截距 b 概念在 3D 消失（3D 线没有单一斜率）→ 改用方向向量
   - 新增 _get_plane（平面）、法向量、点面距离、体积等
   - 条件类型扩展：线面平行/垂直、面面平行/垂直、共面、异面、四面体体积…
+已知异常:
+- 设置实数不能确保Abs正常求解,因为sympy.solve内部可能无法正常论证子表达式具有实数属性,
+失误时会抛NotImplementedError
 """
 
 from custom_latex import override_latex
@@ -147,19 +150,19 @@ class Problem:
     def _get_sp_symbol(self, name: str) -> Symbol:
         """获取 SymPy 符号（3D 版不改）"""
         return self.math_objs[name].sp_symbol  # type: ignore
-
+    # get point
     @track_requirement
     def _get_x_of(self, name: str):
-        """获取点的 x 坐标（3D 版不改，再加一个 _get_z_of）"""
+        """x"""
         return self.math_objs[name].x  # type: ignore
 
     @track_requirement
     def _get_y_of(self, name: str):
-        """获取点的 y 坐标（3D 版不改）"""
+        """y"""
         return self.math_objs[name].y  # type: ignore
-    # 新增 _get_z_of（3D 特有）
     @track_requirement
     def _get_z_of(self, name: str):
+        """z"""
         return self.math_objs[name].z
 
     @track_requirement
@@ -387,6 +390,12 @@ class Problem:
         self._add_math_obj(GCSymbol(name, domain_settings))
         self.symbol_names.append(name)
 
+    def add_O_point(self, name:str):
+        '''快速添加原点'''
+        point = GCPoint(name, Integer(0), Integer(0), Integer(0))
+        self._add_math_obj(point)
+        self.point_names.append(name)
+
     def add_point(self, name: str, x_str: str, y_str: str, z_str: str, line1: str, line2: str) -> None:
         """
         尝试添加点，并相应地添加依赖关系
@@ -600,7 +609,7 @@ class Problem:
         # 删除依赖关系
         for obj in self.math_objs.values():
             obj.required_by -= set(ids)
-    # 纠正原TODO计划，新增读写3D pickle文件方法
+    # 读写3D pickle文件
     def save_to_file(self) -> None:
         path = windows[0].create_file_dialog(FileDialog.SAVE, file_types=('几何计算器 pickle 文件 (*.gc.pkl)',))
         if path is not None:
@@ -664,7 +673,7 @@ class Problem:
         choice:选择对应latex或自定义表达式
         sym_str:待求符号
         custom:是否自定义
-        return:极值点latex列表
+        return:函数值latex
         '''
         print('[debug]:choice',f'(custom is {custom})')
         print(choice)
