@@ -674,9 +674,8 @@ class Problem:
 
     def solve_vec(self, expr: str) -> list[str]:
         """
-        🚀 启动！
-        逻辑与 2D 相同，增加求值结果缓存
-        :param expr: 要求解的目标的字符串表达式
+        三维向量求解！
+        :param expr: 要求解的目标的字符串表达式(结果是向量)
         :return: 所有可能的解的 LaTeX
         """
         left = to_raw_latex(expr)
@@ -685,10 +684,8 @@ class Problem:
                                       for i in range(3)])
         if not result:
             return ['无解：\\emptyset']
-        self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
-    # [improve_flag]向量求解，设置多个target标记，避免多次手动点积
     # 极值点探索入口，含调试输出（控制台）
     def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
         '''
