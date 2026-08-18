@@ -637,6 +637,24 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第七部分：🚀 求解（这是最终目标，结构抄 2D 原版）
     # ═══════════════════════════════════════════════════════
+    def _get_target(self,expr_list:list[str])->set[tuple[Expr]]:
+        '''求解target标记表达式'''
+        d=len(expr_list)
+        tars = [Symbol(f'target{i}') for i in range(d)]
+        eqs = [Eq(tars[i], self._eval_str_expr(expr_list[i])) for i in range(d)]
+        print('[debug]:总方程')
+        for i in self.cond_ids:
+            eqs.extend(self.math_objs[i].eqs)  # type: ignore
+        symbols = tars + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
+        print(eqs)
+        print('[debug]:未知数')
+        print(symbols)
+        solutions = solve(eqs, symbols, dict=True)
+        # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
+        return set(tuple(simplify(sqrtdenest(s[tars[i]])) for i in range(d))
+                     for s in solutions
+                     if tars[-1] in s)
+
     def solve(self, expr: str) -> list[str]:
         """
         🚀 启动！
@@ -646,22 +664,27 @@ class Problem:
         """
         left = to_raw_latex(expr)
         
-        target = Symbol('target')
-        eqs = [Eq(target, self._eval_str_expr(expr))]
-        print('[debug]:总方程')
-        for i in self.cond_ids:
-            eqs.extend(self.math_objs[i].eqs)  # type: ignore
-        symbols = [target] + [self.math_objs[i].sp_symbol for i in self.symbol_names]  # type: ignore
-        print(eqs)
-        print('[debug]:未知数')
-        print(symbols)
-        solutions = solve(eqs, symbols, dict=True)
+        solutions = self._get_target([expr])
         if not solutions:
             return ['无解：\\emptyset']
-        # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-        result = set(simplify(sqrtdenest(s[target])) 
-                     for s in solutions
-                     if target in s)
+        result = set(t[0] for t in solutions)
+        self._last_exprs = {str(latex(i)):i for i in result}
+        result = [f'{left} = {latex(i)}' for i in result]
+        return result
+
+    def solve_vec(self, expr: str) -> list[str]:
+        """
+        🚀 启动！
+        逻辑与 2D 相同，增加求值结果缓存
+        :param expr: 要求解的目标的字符串表达式
+        :return: 所有可能的解的 LaTeX
+        """
+        left = to_raw_latex(expr)
+
+        result = self._get_target([f'({expr}) dot {tuple(int(i==j) for j in range(3))}' 
+                                      for i in range(3)])
+        if not result:
+            return ['无解：\\emptyset']
         self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result

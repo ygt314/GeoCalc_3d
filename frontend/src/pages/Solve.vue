@@ -9,8 +9,20 @@
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
         > 🚀 求解！
       </q-btn>
+      <!-- 向量求解: 对向量表达式解出三个分量 -->
+      <q-btn
+        :disable="expr.length === 0 || solving"
+        color="teal"
+        @click="solveVec"
+      > 📐 向量求解
+      </q-btn>
       <q-linear-progress indeterminate v-if="solving" />
       <div id="duration">用时 {{ duration }}</div>
+    </div>
+    <div v-if="vecSolutions.length > 0" class="vec-result">
+      <div>向量结果：</div>
+      <div v-for="s in vecSolutions" :key="s" v-katex>$$ {{ s }} $$</div>
+      <div class="hint">💡 向量表达式用 vec 前缀,如 vecAB / vecAB cross vecAC</div>
     </div>
     <div v-if="solutions.length > 0">
       <div>以下是所有可能的解：</div>
@@ -132,8 +144,26 @@ const t1 = ref(0);
 const t2 = ref(0);
 
 const solutions = ref<Array<string>>([]);
+const vecSolutions = ref<Array<string>>([]);   // 向量求解结果
 const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
 const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
+
+// 向量求解: 后端对向量表达式解三个分量
+function solveVec() {
+  solving.value = true;
+  vecSolutions.value = [];
+  window.pywebview.api.problem
+    .solve_vec(expr.value)
+    .then((result) => {
+      vecSolutions.value = result;
+    })
+    .catch((e) => {
+      alert('向量求解出错 qwq\n' + e);
+    })
+    .finally(() => {
+      solving.value = false;
+    });
+}
 
 // 选中某个解: 提取等号右边的纯 latex 作为后端缓存键
 function pickSolution(s: string) {
@@ -343,5 +373,12 @@ setInterval(() => {
 
 .func-result {
   color: #333;
+}
+
+.vec-result {
+  margin-top: 0.5em;
+  padding: 0.5em;
+  border-left: 3px solid teal;
+  background: rgba(0, 128, 128, 0.06);
 }
 </style>

@@ -63,6 +63,9 @@ declare global {
 
           solve: (expr: string) => Promise<Array<string>>;
 
+          // 向量求解: 对向量表达式解三个分量(如 vecAB → (x,y,z))
+          solve_vec: (expr: string) => Promise<Array<string>>;
+
           // 极值点探索: choice 是自定义表达式(custom=true,DSL 解析)
           // 或求解结果的 LaTeX 键(custom=false,从缓存取)
           // sym_str 变量列表(空格分隔)。返回驻点 LaTeX 字符串列表
