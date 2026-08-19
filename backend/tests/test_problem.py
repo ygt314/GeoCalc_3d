@@ -309,3 +309,37 @@ class TestExploreFunc:
         result = prob.expore_func('t**2', {'t': '1 + sqrt(2)'}, custom=True)
         assert '\\sqrt{2}' in result  # 精确 latex 含根号
         assert '5.82843' in result    # 浮点近似
+
+    # ── 部分代入(新行为): 只代入部分变量,未代入的保留为符号 ──
+
+    def test_partial_substitution(self, prob):
+        """部分代入: t²+u @ t=2 → u 保留为符号"""
+        prob.add_symbol('t')
+        prob.add_symbol('u')
+        result = prob.expore_func('t**2 + u', {'t': 2}, custom=True)
+        assert 'u' in result        # 未代入的 u 保留
+        assert '4' in result        # t² 已代入
+
+    def test_no_substitution(self, prob):
+        """不代入: t²+u @ {} → 全部保留为符号"""
+        prob.add_symbol('t')
+        prob.add_symbol('u')
+        result = prob.expore_func('t**2 + u', {}, custom=True)
+        assert 'u' in result
+        assert 't' in result
+
+    def test_partial_dsl(self, prob):
+        """DSL + 部分代入: AB² @ t=1 → 完全确定"""
+        prob.add_symbol('t')
+        prob.add_point('A', '0', '0', '0', '', '')
+        prob.add_point('B', 't', '0', '0', '', '')
+        result = prob.expore_func('AB**2', {'t': 1}, custom=True)
+        assert '1' in result
+
+    def test_partial_still_json(self, prob):
+        """部分代入结果仍可 JSON 序列化"""
+        import json
+        prob.add_symbol('t')
+        prob.add_symbol('u')
+        result = prob.expore_func('t**2 + u', {'t': 2}, custom=True)
+        json.dumps(result)  # 不抛异常即通过

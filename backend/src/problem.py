@@ -27,6 +27,12 @@ Problem 的职责（记住这张地图）
 from custom_latex import override_latex
 
 override_latex()
+from sympy import Float
+from sympy.printing.str import StrPrinter
+
+class GPrinter(StrPrinter):
+    def _print_Float(self, expr):
+        return '{:g}'.format(float(expr))
 
 from typing import Never, Optional, Callable
 import re
@@ -45,6 +51,9 @@ from data import MathObj, GCSymbol, GCPoint, Cond, to_raw_latex
 from type_hints import DomainSettings, LatexItem
 from vec_parse_utils import mark_vec_coord, dot, cross
 
+def evalf_str(a:Expr):
+    printer = GPrinter()
+    return printer.doprint(a.evalf())
 # 新增z轴符号
 x = Symbol('x', real=True)
 y = Symbol('y', real=True)
@@ -719,4 +728,4 @@ class Problem:
         ans = sqrtdenest(sss.subs(sub_map))
         print('values:',values)
         print("answer:",ans)
-        return f"$ {latex(ans)} = {float(ans.evalf()):g}$"
+        return f"$ {latex(ans)} = {evalf_str(ans)}$"
