@@ -104,6 +104,15 @@ See [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md).
 
 The [example_pkl/](example_pkl/) directory holds sample problems (2020/2025 Gaokao variants, personal tests, etc.). Load them via "Load from file" in the app; see [example_pkl/README.md](example_pkl/README.md).
 
+## Version History
+
+| Version | Description |
+|---|---|
+| v1.0.0 | Full 3D implementation, complete frontend & backend |
+| v1.1.0 | DSL support for spatial solids (plane / tetrahedron / frustum, etc.) |
+| v1.2.0 | Function value & extrema exploration |
+| v1.3.0 | Vector solving support |
+
 ## License
 
 [GPL-3.0](LICENSE), original author credited (this is a 3D port for learning purposes).
