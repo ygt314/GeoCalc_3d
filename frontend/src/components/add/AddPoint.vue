@@ -65,25 +65,17 @@
     </q-card>
   </q-dialog>
 
-  <!-- 平移添加点弹框: 沿某轴平移已有点 -->
+  <!-- 平移添加点弹框: 点名称 + 操作表达式(DSL,直接透传后端) -->
   <q-dialog v-model="moveOpen" persistent>
     <q-card>
       <q-form @reset="moveReset" @submit="submitMove">
         <q-card-section>
           <h1>平移添加点</h1>
-          <h2>新点名称</h2>
-          <q-input v-model="moveName" dense />
-          <h2>基点(已有点)</h2>
-          <q-input v-model="moveBase" dense placeholder="如 A" />
-          <h2>平移方向</h2>
-          <div class="container">
-            <q-radio v-model="moveAxis" val="x" label="沿 x 轴" />
-            <q-radio v-model="moveAxis" val="y" label="沿 y 轴" />
-            <q-radio v-model="moveAxis" val="z" label="沿 z 轴" />
-          </div>
-          <h2>平移量(可正可负,支持 DSL)</h2>
-          <q-input v-model="moveDelta" dense placeholder="如 1 或 -2 或 a 或 sqrt(2)" />
-          <div class="hint">新点 = 基点 + 方向 × 平移量;支持符号/表达式,如 xA+a</div>
+          <h2>点名称</h2>
+          <q-input v-model="moveName" dense placeholder="如 E" />
+          <h2>操作表达式(支持 DSL 语法)</h2>
+          <q-input v-model="moveWay" dense placeholder="如 xA+1" />
+          <div class="hint">新点 = 沿该轴平移基点,如 xA+1 → (xA+1, yA, zA)</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup type="reset">取消</q-btn>
@@ -139,35 +131,24 @@ function submitOrigin() {
 // ── 平移添加点 ──
 const moveOpen = ref(false);
 const moveName = ref('');
-const moveBase = ref('');
-const moveAxis = ref<'x' | 'y' | 'z'>('x');
-const moveDelta = ref('');
+const moveWay = ref('');   // 操作表达式(DSL),直接透传后端,如 xA+1
 
-// 新点名称合法 + 基点存在 + 平移量非空
+// 点名称合法 + 操作表达式格式正确(至少 <轴><点> 如 xA)
 const isValidMove = computed(
   () =>
     isValidNewPointName(moveName.value) &&
     !dataStore.pointNames.includes(moveName.value) &&
-    dataStore.pointNames.includes(moveBase.value) &&
-    moveDelta.value.trim().length > 0,
+    moveWay.value.trim().length >= 4,
 );
 
 function moveReset() {
-  moveName.value = moveBase.value = '';
-  moveAxis.value = 'x';
-  moveDelta.value = '';
+  moveName.value = moveWay.value = '';
 }
 
 function submitMove() {
-  // 构造 way: <坐标轴><基点><运算符><平移量>,如 xA+a
-  // 平移量支持 DSL 语法(符号/表达式/数值),但轴字母与表达式之间
-  // 必须显式运算符分隔,否则 DSL 正则会把它们糊在一起(如 xAa 解析失败)
-  const delta = moveDelta.value.trim();
-  // 若平移量以运算符开头(如 '-2'、'+a'),直接用;否则补 '+'
-  const op = /^[+\-*/]/.test(delta) ? '' : '+';
-  const way = moveAxis.value + moveBase.value + op + delta;
+  // 操作表达式直接透传后端(支持 DSL: 符号/表达式/数值)
   window.pywebview.api.problem
-    .add_point_from_move(moveName.value, way)
+    .add_point_from_move(moveName.value, moveWay.value.trim())
     .then(() => {
       dataStore.pointNames.push(moveName.value);
       moveOpen.value = false;
