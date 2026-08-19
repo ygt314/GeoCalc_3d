@@ -8,8 +8,10 @@
 
 - (1)证明:AA₁//MN，且平面A₁AMN⊥平面EB₁C₁F;
 > **输入**:`(vecAG cross vecMN) dot (vecAG cross vecMN)` `nGAMN dot nEHIF`
+<br>(向量模式:`vecAG cross vecMN`),以下相关用法相同
 
-> **求解**:`0` `0`
+> **求解**:`0` `0` 
+<br>(向量模式:`(0,0,0)`)
 
 - (2)设O为△A₁B₁C₁的中心.若AO=AB=6，AO//平面EB₁C₁F，且∠MPN=π/3，求四棱锥B-EB₁C₁F的体积.
 > **输入**:`vBFEH+vBHIF`
@@ -22,13 +24,14 @@
 > **加载文件名**:2020GC2l
 <br>**坐标系Mxyz**:`M` `MA` `MB` `MN`
 <br>**点名称对应**:A1→G B1→H C1→I
+<br>**注**:设AB=6(FP=1)
 
 - (1)证明:AA₁//MN，且平面A₁AMN⊥平面EB₁C₁F;
 > **输入**:`(vecAG cross vecMN) dot (vecAG cross vecMN)` `nGAMN dot nEHIF`
 
 > **求解**:`0` `0`
 
-- (2)）设O为△A₁B₁C₁的中心，若AO//平面EB₁C₁F，且AO=AB，求直线B₁E与平面A₁AMN所成角的正弦值.
+- (2)设O为△A₁B₁C₁的中心，若AO//平面EB₁C₁F，且AO=AB，求直线B₁E与平面A₁AMN所成角的正弦值.
 > **输入**:`sin(angcHE_AMN)`
 
 > **求解**:`√10/10`
@@ -37,6 +40,8 @@
 因为几何背景构图是一样的，所以通过简化输入得到通用版<br>
 使用时直接求解部分条件可能不一致，但真题求解，答案一致
 > **加载文件名**:2020GC2
+<br>**坐标系Mxyz**:`M` `MA` `MB` `MN`
+<br>**注**:设AB=6
 
 输入和求解同上
 ## 2020新高考II卷(仅海南)
@@ -60,7 +65,7 @@
 ![](https://img.eol.cn/e_images/gk/2020/2021sj/xgk2/sxd14.png)
 ![](https://img.eol.cn/e_images/gk/2020/2021sj/xgk2/sxd15.png)
 > **加载文件名**:2021GC2
-<br>**坐标系Oxyz**:`(0,0,0)` `x向外` `OD` `OQ`
+<br>**坐标系Oxyz**:`正方形中心` `x向外` `y向右` `z向上`
 
 - (1)证明:平面QAD⊥平面ABCD;
 > **输入**:`nQAD dot nABC`
