@@ -81,9 +81,9 @@
             <q-radio v-model="moveAxis" val="y" label="沿 y 轴" />
             <q-radio v-model="moveAxis" val="z" label="沿 z 轴" />
           </div>
-          <h2>平移量(可正可负)</h2>
-          <q-input v-model="moveDelta" dense placeholder="如 1 或 -2 或 a" />
-          <div class="hint">新点 = 基点 + 方向 × 平移量,如 xA+1 → (x+1, y, z)</div>
+          <h2>平移量(可正可负,支持 DSL)</h2>
+          <q-input v-model="moveDelta" dense placeholder="如 1 或 -2 或 a 或 sqrt(2)" />
+          <div class="hint">新点 = 基点 + 方向 × 平移量;支持符号/表达式,如 xA+a</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup type="reset">取消</q-btn>
@@ -159,8 +159,13 @@ function moveReset() {
 }
 
 function submitMove() {
-  // 构造 way: <坐标轴><基点><平移量>,如 xA+1
-  const way = moveAxis.value + moveBase.value + moveDelta.value;
+  // 构造 way: <坐标轴><基点><运算符><平移量>,如 xA+a
+  // 平移量支持 DSL 语法(符号/表达式/数值),但轴字母与表达式之间
+  // 必须显式运算符分隔,否则 DSL 正则会把它们糊在一起(如 xAa 解析失败)
+  const delta = moveDelta.value.trim();
+  // 若平移量以运算符开头(如 '-2'、'+a'),直接用;否则补 '+'
+  const op = /^[+\-*/]/.test(delta) ? '' : '+';
+  const way = moveAxis.value + moveBase.value + op + delta;
   window.pywebview.api.problem
     .add_point_from_move(moveName.value, way)
     .then(() => {
