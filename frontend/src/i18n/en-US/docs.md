@@ -118,11 +118,17 @@ Format: `v` + the tetrahedron
 
 For example: `vABCD` represents the volume $V_{tetrahedron A-BCD}$
 
+### Volume of Frustum (Prism) of a Triangular Pyramid
+
+Format: `v` + bottom face + `_` + top face
+
+For example: `vABC_DEF` represents the volume $V_{ABC-DEF}$
+
 ### Distance from Point to Line (Plane)
 
 Format: `d` + point name + `t` + line (plane) name
 
-For example: `dAtBC` represents the distance from point A to line BC, denoted $d_{A \to BC}$; `dAtBCD` represents the distance from point A to plane BCD, denoted $d_{A \to plane BCD}$
+For example: `dAtBC` represents the distance from point A to line BC, denoted $d_{A \to BC}$; `dAtpBCD` represents the distance from point A to plane BCD, denoted $d_{A \to plane BCD}$
 
 **Note!!!** Line-line distance, line-plane distance, and plane-plane distance must all be converted to point-to-XXX distance.
 

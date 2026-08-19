@@ -113,7 +113,7 @@ def to_raw_latex(expr: str) -> str:
         # vABCD -> 四面体体积
         (r'\bv([A-Z])([A-Z]{3})\b', r'V_{四面体\1-\2}'),
         # vABC_OPQ -> 三棱台（柱）体积
-        (r'\bv([A-Z]{3})x([A-Z]{3})\b', r'V_{三棱柱\1-\2}')
+        (r'\bv([A-Z]{3})x([A-Z]{3})\b', r'V_{\1-\2}')
     ]
     for pattern, repl in rules:
         expr = re.sub(pattern, repl, expr)

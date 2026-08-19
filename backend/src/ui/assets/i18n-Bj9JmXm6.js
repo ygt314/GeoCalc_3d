@@ -120,11 +120,17 @@ import{$ as e,$n as t,$t as n,A as r,At as i,B as a,Bt as o,C as s,Cn as c,Ct as
 
 例如：\`vABCD\` 代表 $V_{四面体A-BCD}$
 
+### 三棱台（柱）体积
+
+格式：v + 底面_底面
+
+例如：\`vABC_DEF\` 代表 $V_{ABC-DEF}$
+
 ### 点到直线（平面）距离
 
 格式：d + 点名 + t + 直线（平面）名
 
-例如：\`dAtBC\` 代表点 A 到直线 BC 的距离，记作 $d_{A 到 BC}$，\`dAtBCD\` 代表点 A 到 平面BCD 的距离，记作 $d_{A 到 平面BCD}$
+例如：\`dAtBC\` 代表点 A 到直线 BC 的距离，记作 $d_{A 到 BC}$，\`dAtpBCD\` 代表点 A 到 平面BCD 的距离，记作 $d_{A 到 平面BCD}$
 
 **注意!!!**：线线距、线面距、面面距都要转化为点到XXX的距离
 
@@ -264,11 +270,17 @@ Format: \`v\` + the tetrahedron
 
 For example: \`vABCD\` represents the volume $V_{tetrahedron A-BCD}$
 
+### Volume of Frustum (Prism) of a Triangular Pyramid
+
+Format: \`v\` + bottom face + \`_\` + top face
+
+For example: \`vABC_DEF\` represents the volume $V_{ABC-DEF}$
+
 ### Distance from Point to Line (Plane)
 
 Format: \`d\` + point name + \`t\` + line (plane) name
 
-For example: \`dAtBC\` represents the distance from point A to line BC, denoted $d_{A \\to BC}$; \`dAtBCD\` represents the distance from point A to plane BCD, denoted $d_{A \\to plane BCD}$
+For example: \`dAtBC\` represents the distance from point A to line BC, denoted $d_{A \\to BC}$; \`dAtpBCD\` represents the distance from point A to plane BCD, denoted $d_{A \\to plane BCD}$
 
 **Note!!!** Line-line distance, line-plane distance, and plane-plane distance must all be converted to point-to-XXX distance.
 

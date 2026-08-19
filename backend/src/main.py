@@ -10,7 +10,7 @@ import webview
 from api import api
 from logger import backend_logger
 
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 
 backend_logger.info(f'3D几何计算器，启动！版本：{__version__}')
 
