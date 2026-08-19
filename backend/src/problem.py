@@ -399,12 +399,23 @@ class Problem:
         self._add_math_obj(GCSymbol(name, domain_settings))
         self.symbol_names.append(name)
 
+    def _add_gcpoint(self, n: str, x: Expr, y: Expr, z: Expr):
+        '''添加点（内部方法）'''
+        point = GCPoint(n,x,y,z)
+        self._add_math_obj(point)
+        self.point_names.append(n)
     def add_O_point(self, name:str):
         '''快速添加原点'''
-        point = GCPoint(name, Integer(0), Integer(0), Integer(0))
-        self._add_math_obj(point)
-        self.point_names.append(name)
+        o = Integer(0)
+        self._add_gcpoint(name,o,o,o)
 
+    def add_point_from_move(self,new:str,way:str):
+        '''依据DSL语法way平移创建新点new'''
+        if len(way)<4: return
+        xyz,old = way[0],way[1]
+        p_str = [way if i==xyz else i+old for i in 'xyz']
+        self._add_gcpoint(new,*tuple(self._eval_str_expr(p)
+                                    for p in p_str))
     def add_point(self, name: str, x_str: str, y_str: str, z_str: str, line1: str, line2: str) -> None:
         """
         尝试添加点，并相应地添加依赖关系

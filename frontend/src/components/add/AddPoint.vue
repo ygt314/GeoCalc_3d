@@ -3,6 +3,8 @@
     <q-btn :icon="ionAddOutline" @click="dialogOpen = true">添加点</q-btn>
     <!-- 快速添加原点 (0,0,0) -->
     <q-btn :icon="ionLocateOutline" @click="originOpen = true">添加原点</q-btn>
+    <!-- 平移添加点: 沿某轴方向平移已有点 -->
+    <q-btn :icon="ionMoveOutline" @click="moveOpen = true">平移添加</q-btn>
   </div>
   <q-dialog v-model="dialogOpen" persistent>
     <q-card>
@@ -62,10 +64,38 @@
       </q-form>
     </q-card>
   </q-dialog>
+
+  <!-- 平移添加点弹框: 沿某轴平移已有点 -->
+  <q-dialog v-model="moveOpen" persistent>
+    <q-card>
+      <q-form @reset="moveReset" @submit="submitMove">
+        <q-card-section>
+          <h1>平移添加点</h1>
+          <h2>新点名称</h2>
+          <q-input v-model="moveName" dense />
+          <h2>基点(已有点)</h2>
+          <q-input v-model="moveBase" dense placeholder="如 A" />
+          <h2>平移方向</h2>
+          <div class="container">
+            <q-radio v-model="moveAxis" val="x" label="沿 x 轴" />
+            <q-radio v-model="moveAxis" val="y" label="沿 y 轴" />
+            <q-radio v-model="moveAxis" val="z" label="沿 z 轴" />
+          </div>
+          <h2>平移量(可正可负)</h2>
+          <q-input v-model="moveDelta" dense placeholder="如 1 或 -2 或 a" />
+          <div class="hint">新点 = 基点 + 方向 × 平移量,如 xA+1 → (x+1, y, z)</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup type="reset">取消</q-btn>
+          <q-btn type="submit" class="primary" :disable="!isValidMove">确认</q-btn>
+        </q-card-actions>
+      </q-form>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ionAddOutline, ionLocateOutline } from '@quasar/extras/ionicons-v8';
+import { ionAddOutline, ionLocateOutline, ionMoveOutline } from '@quasar/extras/ionicons-v8';
 import { ref, computed } from 'vue';
 import { isValidNewPointName } from 'components/add/validityCheck';
 import { useDataStore } from 'stores/data';
@@ -103,6 +133,43 @@ function submitOrigin() {
     })
     .catch((e) => {
       alert('添加原点失败 qwq\n' + e);
+    });
+}
+
+// ── 平移添加点 ──
+const moveOpen = ref(false);
+const moveName = ref('');
+const moveBase = ref('');
+const moveAxis = ref<'x' | 'y' | 'z'>('x');
+const moveDelta = ref('');
+
+// 新点名称合法 + 基点存在 + 平移量非空
+const isValidMove = computed(
+  () =>
+    isValidNewPointName(moveName.value) &&
+    !dataStore.pointNames.includes(moveName.value) &&
+    dataStore.pointNames.includes(moveBase.value) &&
+    moveDelta.value.trim().length > 0,
+);
+
+function moveReset() {
+  moveName.value = moveBase.value = '';
+  moveAxis.value = 'x';
+  moveDelta.value = '';
+}
+
+function submitMove() {
+  // 构造 way: <坐标轴><基点><平移量>,如 xA+1
+  const way = moveAxis.value + moveBase.value + moveDelta.value;
+  window.pywebview.api.problem
+    .add_point_from_move(moveName.value, way)
+    .then(() => {
+      dataStore.pointNames.push(moveName.value);
+      moveOpen.value = false;
+      moveReset();
+    })
+    .catch((e) => {
+      alert('平移添加失败 qwq\n' + e);
     });
 }
 

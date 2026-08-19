@@ -34,6 +34,10 @@ declare global {
           // 快速添加原点 (0,0,0)
           add_O_point: (name: string) => Promise<null>;
 
+          // 平移添加点: 沿坐标轴平移已有点
+          // way 格式: <坐标轴><基点><平移量>,如 xA+1
+          add_point_from_move: (newName: string, way: string) => Promise<null>;
+
           // 3D 条件方法(与 problem.py 一一对应)
           add_expr_eq: AddBinCondFunc;
           add_line_parallel_line: AddBinCondFunc;
