@@ -52,7 +52,9 @@ from type_hints import DomainSettings, LatexItem
 from vec_parse_utils import mark_vec_coord, dot, cross
 def expr_to_list(f: Expr|Matrix, choice: str=''):
     '''提取向量坐标，用于解析'''
-    a = [i for i in f] if isinstance(f,MatrixKind) else [f]
+    # 判断向量: Matrix 用 isinstance;SymPy Expr 用 .kind(如 MatrixSymbol 是 MatrixKind)
+    # 注意: Matrix 对象本身没有 .kind 属性,不能直接 f.kind
+    a = [i for i in f] if isinstance(f, Matrix) or (hasattr(f, 'kind') and isinstance(f.kind, MatrixKind)) else [f]
     if choice == 'expr': return a if len(a)==1 else []
     elif choice == 'matrix': return [] if len(a)==1 else a
     return a
