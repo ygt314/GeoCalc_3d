@@ -1,0 +1,1 @@
+import{k as e,mt as t,v as n}from"./runtime-core.esm-bundler-CJOrt7RF.js";import{t as r}from"./RenderMarkdown-CcWfmesL.js";var i=e({__name:`Docs`,setup(e){return(e,i)=>(t(),n(r,{raw:e.$t(`markdown.docs`)},null,8,[`raw`]))}});export{i as default};

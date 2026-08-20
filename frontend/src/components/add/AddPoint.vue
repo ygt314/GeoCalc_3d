@@ -4,7 +4,7 @@
     <q-btn :icon="ionLocateOutline" @click="originOpen = true">添加原点</q-btn>
     <q-btn :icon="ionMoveOutline" @click="moveOpen = true">平移添加点</q-btn>
     <!-- 向量指点: 基点 + 向量 = 新点 -->
-    <q-btn :icon="ionNavigateOutline" @click="vecOpen = true">向量指点</q-btn>
+    <q-btn :icon="ionNavigateOutline" @click="openVec">向量指点</q-btn>
   </div>
   <q-dialog v-model="dialogOpen" persistent>
     <q-card>
@@ -98,6 +98,10 @@
           <h2>向量表达式(支持 DSL 语法)</h2>
           <q-input v-model="vecWay" dense placeholder="如 vecAB 或 (1, 0, 0)" />
           <div class="hint">新点 = 基点 + 向量,如 A + vecAB</div>
+          <!-- 基点留空但未设置原点: 提示并禁用确认 -->
+          <div v-if="vecBase.trim().length === 0 && origPoint.length === 0" class="warn">
+            ⚠️ 基点留空需要使用原点,请先点击"添加原点"
+          </div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup type="reset">取消</q-btn>
@@ -186,13 +190,25 @@ const vecOpen = ref(false);
 const vecName = ref('');
 const vecBase = ref('');
 const vecWay = ref('');
+// 已设置的原点(空 = 未设置)。基点留空时依赖它,未设置则拒绝
+const origPoint = ref('');
 
-// 点名称合法 + 向量表达式非空(基点可留空)
+// 打开弹框时查询后端原点状态(每次打开都刷新)
+function openVec() {
+  vecOpen.value = true;
+  void window.pywebview.api.problem.get_orig_point().then((r) => {
+    origPoint.value = r;
+  });
+}
+
+// 点名称合法 + 向量表达式非空 + 基点有效
+// 基点留空时: 必须已设置原点(origPoint 非空),否则拒绝(按钮变灰)
 const isValidVec = computed(
   () =>
     isValidNewPointName(vecName.value) &&
     !dataStore.pointNames.includes(vecName.value) &&
-    vecWay.value.trim().length > 0,
+    vecWay.value.trim().length > 0 &&
+    (vecBase.value.trim().length > 0 || origPoint.value.length > 0),
 );
 
 function vecReset() {
@@ -285,5 +301,14 @@ function submit() {
   font-size: 12px;
   color: #888;
   margin-top: 4px;
+}
+
+.warn {
+  font-size: 12px;
+  color: #c62828;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #ffebee;
+  border-radius: 4px;
 }
 </style>

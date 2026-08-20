@@ -425,6 +425,7 @@ class Problem:
     def add_point_from_vec(self,new:str,old:str,way:str):
         '''依据向量平移创建新点new ，基点为空则使用原点'''
         o = old if old else self.orig_point
+        if not o: return
         p,v = self._get_sp_point(o),self._eval_str_expr(way)
         x,y,z = Matrix(p)+v
         self._add_gcpoint(new,x,y,z)
@@ -571,6 +572,10 @@ class Problem:
 
     def get_point_names(self) -> list[str]:
         return self.point_names
+
+    def get_orig_point(self) -> str:
+        """返回已设置的原点(空字符串 = 未设置,add_O_point 后才有值)"""
+        return self.orig_point
 
     def get_cond_ids(self) -> list[str]:
         return self.cond_ids

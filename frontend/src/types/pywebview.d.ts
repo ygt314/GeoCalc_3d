@@ -55,6 +55,9 @@ declare global {
           // 2D 的 add_parallel/add_cong 等已移除(3D 不做平面几何条件)
 
           get_symbol_names: () => Promise<Array<string>>;
+
+          // 返回已设置的原点(空字符串 = 未设置)
+          get_orig_point: () => Promise<string>;
           get_point_names: () => Promise<Array<string>>;
           get_cond_ids: () => Promise<Array<string>>;
 
