@@ -27,9 +27,8 @@ Problem 的职责（记住这张地图）
 from custom_latex import override_latex
 
 override_latex()
-from sympy import Float
 from sympy.printing.str import StrPrinter
-
+# 暂时保留
 class GPrinter(StrPrinter):
     def _print_Float(self, expr):
         return '{:g}'.format(float(expr))
@@ -45,12 +44,18 @@ import pickle
 from sympy import Symbol, Expr, symbols, simplify, Eq, Line3D, solve, Point3D, Plane, Matrix, asin, acos, latex, Abs, sqrtdenest
 from sympy import diff, sqrt, sin, cos, tan, pi, Integer  # noqa
 from sympy.logic.boolalg import BooleanTrue, BooleanFalse
+from sympy.matrices import MatrixKind
 from webview import windows, FileDialog
 # 新增叉积cross
 from data import MathObj, GCSymbol, GCPoint, Cond, to_raw_latex
 from type_hints import DomainSettings, LatexItem
 from vec_parse_utils import mark_vec_coord, dot, cross
-
+def expr_to_list(f: Expr|Matrix, choice: str=''):
+    '''提取向量坐标，用于解析'''
+    a = [i for i in f] if isinstance(f,MatrixKind) else [f]
+    if choice == 'expr': return a if len(a)==1 else []
+    elif choice == 'matrix': return [] if len(a)==1 else a
+    return a
 def evalf_str(a:Expr):
     printer = GPrinter()
     return printer.doprint(a.evalf())
@@ -130,7 +135,8 @@ class Problem:
         self.symbol_names: list[str] = []
         self.point_names: list[str] = []
         self.cond_ids: list[str] = []
-
+        # 记录原点
+        self.orig_point = ''
         # 用于临时存放正在添加的新对象依赖哪些对象
         self.requirements_tracker: set[MathObj] = set()
         # 最近一次 solve 解出的目标表达式
@@ -279,7 +285,7 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第三部分：字符串表达式 → SymPy 代码 ★ 整个项目最巧妙的部分
     # ═══════════════════════════════════════════════════════
-    def _eval_str_expr(self, expr: str) -> Expr | Never:
+    def _eval_str_expr(self, expr: str) -> Expr | Matrix | Never:
         """
         尝试解析字符串表达式，解析失败会报错
         原理：一串正则替换把"人话"变成 Python 代码，然后 eval
@@ -405,17 +411,24 @@ class Problem:
         self._add_math_obj(point)
         self.point_names.append(n)
     def add_O_point(self, name:str):
-        '''快速添加原点'''
+        '''添加原点'''
         o = Integer(0)
+        self.orig_point = name
         self._add_gcpoint(name,o,o,o)
-
     def add_point_from_move(self,new:str,way:str):
-        '''依据DSL语法way平移创建新点new'''
+        '''依据DSL语法way确定基点并平移创建新点new'''
         if len(way)<4: return
         xyz,old = way[0],way[1]
         p_str = [way if i==xyz else i+old for i in 'xyz']
         self._add_gcpoint(new,*tuple(self._eval_str_expr(p)
                                     for p in p_str))
+    def add_point_from_vec(self,new:str,old:str,way:str):
+        '''依据向量平移创建新点new ，基点为空则使用原点'''
+        o = old if old else self.orig_point
+        p,v = self._get_sp_point(o),self._eval_str_expr(way)
+        x,y,z = Matrix(p)+v
+        self._add_gcpoint(new,x,y,z)
+
     def add_point(self, name: str, x_str: str, y_str: str, z_str: str, line1: str, line2: str) -> None:
         """
         尝试添加点，并相应地添加依赖关系
@@ -657,11 +670,11 @@ class Problem:
     # ═══════════════════════════════════════════════════════
     # 第七部分：🚀 求解（这是最终目标，结构抄 2D 原版）
     # ═══════════════════════════════════════════════════════
-    def _get_target(self,expr_list:list[str])->set[tuple[Expr]]:
+    def _get_target(self,expr_list:list[Expr])->set[tuple[Expr]]:
         '''求解target标记表达式'''
         d=len(expr_list)
         tars = [Symbol(f'target{i}') for i in range(d)]
-        eqs = [Eq(tars[i], self._eval_str_expr(expr_list[i])) for i in range(d)]
+        eqs = [Eq(tars[i], expr_list[i]) for i in range(d)]
         print('[debug]:总方程')
         for i in self.cond_ids:
             eqs.extend(self.math_objs[i].eqs)  # type: ignore
@@ -682,41 +695,43 @@ class Problem:
         :param expr: 要求解的目标的字符串表达式
         :return: 所有可能的解的 LaTeX
         """
-        left = to_raw_latex(expr)
-        
-        solutions = self._get_target([expr])
-        if not solutions:
-            return ['无解：\\emptyset']
+        left, right = to_raw_latex(expr), self._eval_str_expr(expr)
+        exprs = expr_to_list(right,'expr')
+        if not exprs: return ['这是向量哦~小朋友你是不是有很多问号？？？']
+
+        solutions = self._get_target(exprs)
+        if not solutions: return ['无解：\\emptyset']
         result = set(t[0] for t in solutions)
+
         self._last_exprs = {str(latex(i)):i for i in result}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
 
-    def solve_vec(self, expr: str, n:int = 3) -> list[str]:
+    def solve_vec(self, expr: str, sure_vec=True) -> list[str]:
         """
         n维向量求解!
         :param expr: 要求解的目标的字符串表达式(结果是向量)
         :return: 所有可能的解的 LaTeX
         """
-        if n<2: return ['-_-’这不是向量。。。']
-        left = to_raw_latex(expr)
+        left, right = to_raw_latex(expr), self._eval_str_expr(expr)
+        exprs = expr_to_list(right,'matrix' if sure_vec else '')
+        if not exprs: return ['-_-’这不是向量。。。请圆润地回到标量！！！']
 
-        result = self._get_target([f'({expr}) dot {tuple(int(i==j) for j in range(n))}' 
-                                      for i in range(n)])
-        if not result:
-            return ['无解：\\emptyset']
+        solutions = self._get_target(exprs)
+        if not solutions: return ['无解：\\emptyset']
+
+        self._last_exprs = {}
         result = [f'{left} = {latex(i)}' for i in result]
         return result
     def solve_mult(self, exprs: str):
         '''
-        自动求解多个表达式（至少两个）
+        自动求解多个表达式（兼容单个表达式，但没有缓存）
         exprs:多个表达式之间用,隔开，例如 a,b,c,d或(a,b,c,d)
-        不受支持的表达式：
-        1.表达式内部有“,”，这会导致维数计算错误和DSL语法误解，例如 vecAB dot (1,2,3),vecAB
+        不受支持或限制的表达式：
+        1.表达式内部有“,”，这可能会导致DSL语法误解，例如 vecAB dot (1,2,3),(1,(2,3),4)
         2.表达式结果是向量，例如 vecAB,m+1
         '''
-        dimension = exprs.count(',')+1
-        return self.solve_vec(exprs,dimension)
+        return self.solve_vec(f'({exprs})', False)
     # 极值点探索入口，含调试输出（控制台）
     def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
         '''
@@ -750,4 +765,4 @@ class Problem:
         ans = sqrtdenest(sss.subs(sub_map))
         print('values:',values)
         print("answer:",ans)
-        return f"$ {latex(ans)} = {evalf_str(ans)}$"
+        return f"$ {latex(ans)} = {latex(ans.evalf())}$"

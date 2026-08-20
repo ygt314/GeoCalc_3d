@@ -38,6 +38,9 @@ declare global {
           // way 格式: <坐标轴><基点><平移量>,如 xA+1
           add_point_from_move: (newName: string, way: string) => Promise<null>;
 
+          // 向量指点: 基点 + 向量 = 新点(old 留空用原点)
+          add_point_from_vec: (newName: string, old: string, way: string) => Promise<null>;
+
           // 3D 条件方法(与 problem.py 一一对应)
           add_expr_eq: AddBinCondFunc;
           add_line_parallel_line: AddBinCondFunc;

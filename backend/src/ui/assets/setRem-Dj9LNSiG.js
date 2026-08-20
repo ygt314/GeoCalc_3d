@@ -1,0 +1,1 @@
+import{Ht as e}from"./runtime-core.esm-bundler-CJOrt7RF.js";import{d as t}from"./index-BZrLpDqz.js";import{t as n}from"./wrappers-Dfvzj6n2.js";function r(){let e=Math.min(16,t.width/25);document.documentElement.style.fontSize=`${e}px`}var i=n(()=>{r(),e(()=>t.width,r)});export{i as default};

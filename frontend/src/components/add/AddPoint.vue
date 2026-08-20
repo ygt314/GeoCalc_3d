@@ -1,10 +1,10 @@
 <template>
   <div class="point-btns">
     <q-btn :icon="ionAddOutline" @click="dialogOpen = true">添加点</q-btn>
-    <!-- 快速添加原点 (0,0,0) -->
     <q-btn :icon="ionLocateOutline" @click="originOpen = true">添加原点</q-btn>
-    <!-- 平移添加点: 沿某轴方向平移已有点 -->
-    <q-btn :icon="ionMoveOutline" @click="moveOpen = true">平移添加</q-btn>
+    <q-btn :icon="ionMoveOutline" @click="moveOpen = true">平移添加点</q-btn>
+    <!-- 向量指点: 基点 + 向量 = 新点 -->
+    <q-btn :icon="ionNavigateOutline" @click="vecOpen = true">向量指点</q-btn>
   </div>
   <q-dialog v-model="dialogOpen" persistent>
     <q-card>
@@ -84,10 +84,32 @@
       </q-form>
     </q-card>
   </q-dialog>
+
+  <!-- 向量指点弹框: 基点 + 向量表达式 = 新点 -->
+  <q-dialog v-model="vecOpen" persistent>
+    <q-card>
+      <q-form @reset="vecReset" @submit="submitVec">
+        <q-card-section>
+          <h1>向量指点</h1>
+          <h2>点名称</h2>
+          <q-input v-model="vecName" dense placeholder="如 C" />
+          <h2>基点(留空则用原点)</h2>
+          <q-input v-model="vecBase" dense placeholder="如 A(可留空)" />
+          <h2>向量表达式(支持 DSL 语法)</h2>
+          <q-input v-model="vecWay" dense placeholder="如 vecAB 或 (1, 0, 0)" />
+          <div class="hint">新点 = 基点 + 向量,如 A + vecAB</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup type="reset">取消</q-btn>
+          <q-btn type="submit" class="primary" :disable="!isValidVec">确认</q-btn>
+        </q-card-actions>
+      </q-form>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ionAddOutline, ionLocateOutline, ionMoveOutline } from '@quasar/extras/ionicons-v8';
+import { ionAddOutline, ionLocateOutline, ionMoveOutline, ionNavigateOutline } from '@quasar/extras/ionicons-v8';
 import { ref, computed } from 'vue';
 import { isValidNewPointName } from 'components/add/validityCheck';
 import { useDataStore } from 'stores/data';
@@ -159,6 +181,37 @@ function submitMove() {
     });
 }
 
+// ── 向量指点: 基点 + 向量 = 新点 ──
+const vecOpen = ref(false);
+const vecName = ref('');
+const vecBase = ref('');
+const vecWay = ref('');
+
+// 点名称合法 + 向量表达式非空(基点可留空)
+const isValidVec = computed(
+  () =>
+    isValidNewPointName(vecName.value) &&
+    !dataStore.pointNames.includes(vecName.value) &&
+    vecWay.value.trim().length > 0,
+);
+
+function vecReset() {
+  vecName.value = vecBase.value = vecWay.value = '';
+}
+
+function submitVec() {
+  window.pywebview.api.problem
+    .add_point_from_vec(vecName.value, vecBase.value.trim(), vecWay.value.trim())
+    .then(() => {
+      dataStore.pointNames.push(vecName.value);
+      vecOpen.value = false;
+      vecReset();
+    })
+    .catch((e) => {
+      alert('向量指点失败 qwq\n' + e);
+    });
+}
+
 const notEmpty = (str: string) => str.length > 0;
 /**
  * 1. 点名称合法
@@ -211,8 +264,10 @@ function submit() {
 
 <style scoped>
 .point-btns {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5em;
+  max-width: 400px;
 }
 
 .container {
