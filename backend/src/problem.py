@@ -54,6 +54,7 @@ def expr_to_list(f: Expr|Matrix, choice: str=''):
     '''提取向量坐标，用于解析'''
     # 判断向量: Matrix 用 isinstance;SymPy Expr 用 .kind(如 MatrixSymbol 是 MatrixKind)
     # 注意: Matrix 对象本身没有 .kind 属性,不能直接 f.kind
+    print('[debug]:class is Matrix',isinstance(f, Matrix))
     a = [i for i in f] if isinstance(f, Matrix) or (hasattr(f, 'kind') and isinstance(f.kind, MatrixKind)) else [f]
     if choice == 'expr': return a if len(a)==1 else []
     elif choice == 'matrix': return [] if len(a)==1 else a
@@ -728,7 +729,7 @@ class Problem:
         if not solutions: return ['无解：\\emptyset']
 
         self._last_exprs = {}
-        result = [f'{left} = {latex(i)}' for i in result]
+        result = [f'{left} = {latex(i)}' for i in solutions]
         return result
     def solve_mult(self, exprs: str):
         '''
