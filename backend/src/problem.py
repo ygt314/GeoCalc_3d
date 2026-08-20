@@ -692,20 +692,31 @@ class Problem:
         result = [f'{left} = {latex(i)}' for i in result]
         return result
 
-    def solve_vec(self, expr: str) -> list[str]:
+    def solve_vec(self, expr: str, n:int = 3) -> list[str]:
         """
-        三维向量求解！
+        n维向量求解!
         :param expr: 要求解的目标的字符串表达式(结果是向量)
         :return: 所有可能的解的 LaTeX
         """
+        if n<2: return ['-_-’这不是向量。。。']
         left = to_raw_latex(expr)
 
-        result = self._get_target([f'({expr}) dot {tuple(int(i==j) for j in range(3))}' 
-                                      for i in range(3)])
+        result = self._get_target([f'({expr}) dot {tuple(int(i==j) for j in range(n))}' 
+                                      for i in range(n)])
         if not result:
             return ['无解：\\emptyset']
         result = [f'{left} = {latex(i)}' for i in result]
         return result
+    def solve_mult(self, exprs: str):
+        '''
+        自动求解多个表达式（至少两个）
+        exprs:多个表达式之间用,隔开，例如 a,b,c,d或(a,b,c,d)
+        不受支持的表达式：
+        1.表达式内部有“,”，这会导致维数计算错误和DSL语法误解，例如 vecAB dot (1,2,3),vecAB
+        2.表达式结果是向量，例如 vecAB,m+1
+        '''
+        dimension = exprs.count(',')+1
+        return self.solve_vec(exprs,dimension)
     # 极值点探索入口，含调试输出（控制台）
     def expore_extrema(self, choice: str, sym_str: str, custom=False)->list:
         '''

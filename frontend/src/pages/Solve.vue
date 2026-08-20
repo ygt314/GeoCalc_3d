@@ -5,10 +5,11 @@
     <!-- ═══════════ ① 求解区(独立) ═══════════ -->
     <div>请输入要计算的表达式：</div>
     <q-input v-model="expr" dense />
-    <!-- 求解类型选择: 标量 / 向量 -->
+    <!-- 求解类型选择: 标量 / 向量 / 多表达式 -->
     <div class="container">
       <q-radio v-model="solveType" val="scalar" label="标量求解" />
       <q-radio v-model="solveType" val="vector" label="向量求解" />
+      <q-radio v-model="solveType" val="multi" label="多表达式求解" />
     </div>
     <div class="container">
       <q-btn :disable="expr.length === 0 || solving" @click="solve" class="primary"
@@ -16,6 +17,9 @@
       </q-btn>
       <q-linear-progress indeterminate v-if="solving" />
       <div id="duration">用时 {{ duration }}</div>
+    </div>
+    <div v-if="solveType === 'multi'" class="hint">
+      💡 多表达式用逗号分隔,如 m+1, n 或 m, n, m+n(内部不能有逗号)
     </div>
     <div v-if="vecSolutions.length > 0" class="vec-result">
       <div>向量结果：</div>
@@ -146,10 +150,10 @@ const vecSolutions = ref<Array<string>>([]);   // 向量求解结果
 const selectedDisplay = ref('');       // 选中的完整解(显示用,如 't = 2')
 const selectedKey = ref('');           // 选中的纯 latex 键(传给后端,如 '2')
 
-// 求解类型: scalar 标量 / vector 向量
-const solveType = ref<'scalar' | 'vector'>('scalar');
+// 求解类型: scalar 标量 / vector 向量 / multi 多表达式
+const solveType = ref<'scalar' | 'vector' | 'multi'>('scalar');
 
-// 按类型分发求解: 标量走 solve,向量走 solve_vec
+// 按类型分发求解: 标量走 solve,向量走 solve_vec,多表达式走 solve_mult
 function solve() {
   t1.value = t2.value = Date.now();
   solving.value = true;
@@ -157,12 +161,17 @@ function solve() {
   vecSolutions.value = [];
   selectedDisplay.value = '';
   selectedKey.value = '';
-  const doSolve = solveType.value === 'vector'
-    ? window.pywebview.api.problem.solve_vec(expr.value)
-    : window.pywebview.api.problem.solve(expr.value);
+  let doSolve: Promise<Array<string>>;
+  if (solveType.value === 'vector') {
+    doSolve = window.pywebview.api.problem.solve_vec(expr.value);
+  } else if (solveType.value === 'multi') {
+    doSolve = window.pywebview.api.problem.solve_mult(expr.value);
+  } else {
+    doSolve = window.pywebview.api.problem.solve(expr.value);
+  }
   doSolve
     .then((result) => {
-      if (solveType.value === 'vector') {
+      if (solveType.value === 'vector' || solveType.value === 'multi') {
         vecSolutions.value = result;
       } else {
         solutions.value = result;
