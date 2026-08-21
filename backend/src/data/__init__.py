@@ -12,4 +12,6 @@ override_latex()
 from .math_obj import MathObj
 from .symbol import GCSymbol
 from .point import GCPoint
-from .cond import Cond, to_raw_latex
+from .cond import Cond
+# DSL
+from .dsl import to_raw_latex, to_raw_expr

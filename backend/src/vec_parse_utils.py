@@ -18,7 +18,8 @@
 """
 
 from typing import Callable
-
+from sympy import Expr, Matrix
+from sympy.matrices import MatrixKind
 
 def mark_vec_coord(expr: str) -> str:
     """用 ``Matrix([])`` 标记表达式中向量的坐标表示，经测试原版也支持多元组"""
@@ -47,6 +48,17 @@ def mark_vec_coord(expr: str) -> str:
                     char_list[i] = '])'
                     break
     return ''.join(char_list)
+
+
+def expr_to_list(f: Expr|Matrix, choice: str=''):
+    '''提取向量坐标，用于解析'''
+    # 判断向量: Matrix 用 isinstance;SymPy Expr 用 .kind(如 MatrixSymbol 是 MatrixKind)
+    # 注意: Matrix 对象本身没有 .kind 属性,不能直接 f.kind
+    print('[debug]:class is Matrix',isinstance(f, Matrix))
+    a = [i for i in f] if isinstance(f, Matrix) or (hasattr(f, 'kind') and isinstance(f.kind, MatrixKind)) else [f]
+    if choice == 'expr': return a if len(a)==1 else []
+    elif choice == 'matrix': return [] if len(a)==1 else a
+    return a
 
 
 class Infix:

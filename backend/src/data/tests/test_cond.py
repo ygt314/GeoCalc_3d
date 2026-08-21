@@ -18,7 +18,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from data.cond import Cond, to_raw_latex, map_vec_coord  # noqa: E402
+from data.cond import Cond  # noqa: E402
+from data.dsl import to_raw_latex, map_vec_coord  # noqa: E402
 from sympy import Eq, Symbol  # noqa: E402
 
 
