@@ -34,7 +34,7 @@ def get_ans(a:Expr|Matrix, b=0):
     if b == 1: return simplify(a)
     elif b == 2: return sqrtdenest(a)
     return simplify(sqrtdenest(a))
-# 新增z轴符号
+
 x = Symbol('x', real=True)
 y = Symbol('y', real=True)
 z = Symbol('z', real=True)
@@ -262,7 +262,7 @@ class Problem(DataOperate):
         """
         expr = to_raw_expr(expr)
         return simplify(eval(expr))  # 不能直接用sympify，否则会自己造符号
-    # 极值点探索:得到表达式后对每个变量求偏导 = 0,解方程组求驻点
+    # 极值点探索
     def _get_extrema(self, f: Expr, syms: str = 'x y') -> list:
         """
         求解在无约束下,函数 f(x, y...) 的可能极值点(驻点)
@@ -273,9 +273,6 @@ class Problem(DataOperate):
             驻点列表,每项为Latex结果
         注意:
             - 求的是驻点(偏导=0),不区分极大/极小,需自行判断
-            - 只解多项式方程组,复杂函数可能无解或很慢
-            - 返回 LaTeX 字符串而非 Expr 对象,因为 pywebview 桥接
-              需要 JSON 序列化,SymPy 对象无法序列化
         """
         print("[debug_get_extrema]:f",f'(syms:{syms})')
         print(f)
