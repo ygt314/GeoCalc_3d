@@ -1,30 +1,12 @@
 """3D几何计算器 - 核心：Problem 类
 
-这是整个项目的"大脑"，承载一个问题的完整求解周期：
-  加点 → 加条件 → 求解 → 极值/函数值探索
+流程结构：加点 → 加条件 → 求解(solve/solve_vec/solve_mult) → 极值/函数值探索
+数据状态与查询/存取在父类 data_op.py；DSL 规则表在 data/dsl.py。
 
-Problem 的职责（记住这张地图）
-
-  1. 管理所有数学对象：self.math_objs（id → 对象）
-  2. 维护依赖图：requirements_tracker + track_requirement（装饰器）
-  3. 把用户字符串表达式编译成 SymPy 代码：_eval_str_expr
-  4. 把几何条件翻译成代数方程：add_* 系列方法（@AddCond 装饰器）
-  5. 求解：solve() / solve_vec() / solve_mult() —— 丢给 SymPy 的 solve
-
-结构（本文件自上而下）
-
-  - 工具函数：get_ans（统一化简/去嵌套根号）、track_requirement 装饰器
-  - 条件装饰器：AddCond / AddBinCond / AddUnaryCond
-  - Problem(DataOperate)：数据状态与查询/存取在父类 data_op.py
-  - 六个部分：对象管理 → 访问器 → DSL 解析 → 添加对象 → 条件 → 求解
-
-3D 相比 2D 的变化
-
-  - 点的坐标 (x, y) → (x, y, z)，_get_* 方法加 z 分量
-  - 直线用 Line3D（方向向量 + 参数方程），斜率/截距概念消失
-  - 新增平面（Plane）、法向量、点面距离、二面角、四面体/三棱台体积
-  - 条件扩展：线面/面面平行垂直、点在平面(∈)等
-  - DSL 规则表在 data/dsl.py（to_raw_latex / to_raw_expr）
+3D 新变化特点：
+  - 坐标 (x, y, z)，直线用 Line3D(方向向量+参数方程)，无斜率概念
+  - 新增平面/法向量/点面距离/二面角/四面体·三棱台体积
+  - 条件扩展：线面/面面平行垂直、点在平面(∈)
 
 已知异常:
 - 设置实数不能确保Abs,sqrt正常求解,因为sympy.solve内部可能无法正常论证(子)表达式具有实数属性,
