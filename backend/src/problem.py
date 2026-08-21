@@ -1,7 +1,7 @@
 """3D几何计算器 - 核心：Problem 类
 
-这是整个项目的"大脑"。2D 原版 478 行，本文件是骨架 + 详细注释，
-核心实现（TODO 标注处）由你对照 2D 原版手写补全 —— 这正是学习的目的。
+这是整个项目的"大脑"，承载一个问题的完整求解周期：
+  加点 → 加条件 → 求解 → 极值/函数值探索
 
 Problem 的职责（记住这张地图）
 
@@ -9,16 +9,23 @@ Problem 的职责（记住这张地图）
   2. 维护依赖图：requirements_tracker + track_requirement（装饰器）
   3. 把用户字符串表达式编译成 SymPy 代码：_eval_str_expr
   4. 把几何条件翻译成代数方程：add_* 系列方法（@AddCond 装饰器）
-  5. 求解：solve() —— 把所有方程丢给 SymPy 的 solve
+  5. 求解：solve() / solve_vec() / solve_mult() —— 丢给 SymPy 的 solve
 
-2D → 3D 核心变化清单（你在 TODO 处要做的）
+结构（本文件自上而下）
 
-  - 点的坐标从 (x, y) → (x, y, z)，所有 _get_* 方法加 z 分量
-  - _get_line（Line2D）→ 线在 3D 里不能再用"一般式 ax+by+c=0"表示！
-    3D 直线用：方向向量 + 参数方程，或用 SymPy 的 Line3D
-  - 斜率 k / 截距 b 概念在 3D 消失（3D 线没有单一斜率）→ 改用方向向量
-  - 新增 _get_plane（平面）、法向量、点面距离、体积等
-  - 条件类型扩展：线面平行/垂直、面面平行/垂直、共面、异面、四面体体积…
+  - 工具函数：get_ans（统一化简/去嵌套根号）、track_requirement 装饰器
+  - 条件装饰器：AddCond / AddBinCond / AddUnaryCond
+  - Problem(DataOperate)：数据状态与查询/存取在父类 data_op.py
+  - 六个部分：对象管理 → 访问器 → DSL 解析 → 添加对象 → 条件 → 求解
+
+3D 相比 2D 的变化
+
+  - 点的坐标 (x, y) → (x, y, z)，_get_* 方法加 z 分量
+  - 直线用 Line3D（方向向量 + 参数方程），斜率/截距概念消失
+  - 新增平面（Plane）、法向量、点面距离、二面角、四面体/三棱台体积
+  - 条件扩展：线面/面面平行垂直、点在平面(∈)等
+  - DSL 规则表在 data/dsl.py（to_raw_latex / to_raw_expr）
+
 已知异常:
 - 设置实数不能确保Abs,sqrt正常求解,因为sympy.solve内部可能无法正常论证(子)表达式具有实数属性,
 失误时会抛NotImplementedError
@@ -32,12 +39,9 @@ from typing import Never, Optional, Callable
 
 import functools
 from abc import ABC, abstractmethod
-# 新增Plane，并为点线适配3D；删除Segment无用项，距离就是模长
-# 暂时新增asin适配线面所成角
 from sympy import Symbol, Expr, symbols, simplify, Eq, Line3D, solve, Point3D, Plane, Matrix, asin, acos, latex, Abs, sqrtdenest
 from sympy import diff, sqrt, sin, cos, tan, pi, Integer  # noqa
 from sympy.logic.boolalg import BooleanTrue, BooleanFalse
-# 新增叉积cross
 from data import MathObj, GCSymbol, GCPoint, Cond, to_raw_latex, to_raw_expr
 from type_hints import DomainSettings
 from vec_parse_utils import dot, cross, expr_to_list
@@ -63,7 +67,7 @@ VALID_GREEK_SPELLINGS = [
 
 def track_requirement(func):
     """在执行访问数学对象的函数时，追踪记录它访问了谁
-    （抄 2D 原版，一字不改 —— 依赖追踪与维度无关）
+    （依赖追踪与维度无关）
     """
     @functools.wraps(func)
     def wrapper(self: 'Problem', name: str):
@@ -73,7 +77,7 @@ def track_requirement(func):
 
 
 class AddCond(ABC):
-    """条件添加装饰器（抄 2D 原版，一字不改）
+    """条件添加装饰器
     职责：把用户输入拼成 LaTeX id → 调用被装饰方法得到方程列表 → 化简 → 过滤恒真/恒假 → 添加
     """
     def __init__(self, op: str):
@@ -104,15 +108,15 @@ class AddCond(ABC):
 
 class AddBinCond(AddCond):
     """二元条件：input1 OP input2（如 AB = CD、AB ⊥ CD）
-    抄 2D 原版即可：f'{to_raw_latex(input1)} {self.op} {to_raw_latex(input2)}'
+    拼接：f'{to_raw_latex(input1)} {self.op} {to_raw_latex(input2)}'
     """
     def get_raw_latex(self, input1: str, input2: str) -> str:
         return f'{to_raw_latex(input1)} {self.op} {to_raw_latex(input2)}'
 
 
 class AddUnaryCond(AddCond):
-    """一元条件：OP input1（如"平行四边形 ABCD"、"等边三角形 ABC"）
-    抄 2D 原版即可：f'{self.op} {input1}'
+    """一元条件：OP input1
+    拼接：f'{self.op} {input1}'
     """
     def get_raw_latex(self, input1: str) -> str:
         return f'{self.op} {input1}'
@@ -127,7 +131,7 @@ class Problem(DataOperate):
         # 对"解"探索而非对原始输入表达式,仅存当前结果,换题即覆盖)
         self._last_exprs: dict[str, Expr] = {}
     # ═══════════════════════════════════════════════════════
-    # 第一部分：对象管理（抄 2D 原版，基本不改）
+    # 第一部分：对象管理
     # ═══════════════════════════════════════════════════════
     def _add_math_obj(self, obj: MathObj) -> None:
         """添加数学对象，并把 tracker 里的依赖关系固化到对象上"""
@@ -423,7 +427,7 @@ class Problem(DataOperate):
             self.requirements_tracker.clear()
             raise e
     # ═══════════════════════════════════════════════════════
-    # 第五部分：条件方法 ★ 2D 有 9 种，3D 你要扩展
+    # 第五部分：条件方法
     # 每个方法都被 @AddBinCond/@AddUnaryCond 装饰，只负责"给出方程列表"
     # ═══════════════════════════════════════════════════════
     # 新增：内部向量关系方程
@@ -484,7 +488,7 @@ class Problem(DataOperate):
         return [self._vec_eq(v1, v2, 1)]
     # [improve_flag]几何元素集合关系处理
     # ═══════════════════════════════════════════════════════
-    # 第七部分：🚀 求解（这是最终目标，结构抄 2D 原版）
+    # 第七部分：🚀 求解（一个问题的最终目标）
     # ═══════════════════════════════════════════════════════
     def _get_target(self,expr_list:list[Expr])->set[tuple[Expr]]:
         '''求解target标记表达式'''
