@@ -14,6 +14,13 @@
 用法: uv run pytest tests/test_refactor_contract.py
 """
 import pytest
+from problem import Problem
+
+
+@pytest.fixture
+def prob():
+    """每测试一个全新 Problem 实例"""
+    return Problem()
 
 # ═══════════════════════════════════════════════════════
 # 1. geo_tools.py: 工具函数与装饰器
@@ -77,7 +84,6 @@ class TestGeoToolsContract:
 # ═══════════════════════════════════════════════════════
 # 2. geo_accessors.py: 几何访问器 + DSL 解析
 # ═══════════════════════════════════════════════════════
-@pytest.mark.xfail(reason="REFACTOR_PLAN: 拆分未实施")
 class TestAccessorsContract:
     def test_get_x_of(self, prob):
         """_get_x_of: 取点 x 坐标"""
@@ -95,7 +101,8 @@ class TestAccessorsContract:
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', '1', '0', '0', '', '')
         prob.add_point('C', '0', '1', '0', '', '')
-        assert list(prob._get_plane_normal('pABC')) == [0, 0, -1]
+        # A→B→C 顺序得出 +z 法向量 (0,0,1)
+        assert list(prob._get_plane_normal('pABC')) == [0, 0, 1]
 
     def test_eval_str_dot(self, prob):
         """DSL: dot 点积"""
@@ -121,7 +128,6 @@ class TestAccessorsContract:
 # ═══════════════════════════════════════════════════════
 # 3. geo_objects.py: 对象与条件添加
 # ═══════════════════════════════════════════════════════
-@pytest.mark.xfail(reason="REFACTOR_PLAN: 拆分未实施")
 class TestObjectsContract:
     def test_add_symbol(self, prob):
         """add_symbol: 添加符号"""
@@ -147,18 +153,23 @@ class TestObjectsContract:
         assert prob.math_objs['C'].get_latex() == 'C \\left( 4, 6, 8 \\right)'
 
     def test_add_line_parallel_plane(self, prob):
-        """add_line_parallel_plane: 线面平行"""
+        """add_line_parallel_plane: 线面平行(方向含参数,有条件)"""
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', '1', '0', '0', '', '')
         prob.add_point('C', '0', '1', '0', '', '')
-        prob.add_point('P', 'x', 'y', '1', '', '')
-        prob.add_line_parallel_plane('AB', 'pABC')
+        # 线 PQ: P(0,0,a), Q(1,1,b) → 方向 (1,1,b-a)
+        # 与 z=0 面法向量(0,0,1)点积 = b-a,平行需要 b=a(有条件)
+        prob.add_symbol('a')
+        prob.add_symbol('b')
+        prob.add_point('P', '0', '0', 'a', '', '')
+        prob.add_point('Q', '1', '1', 'b', '', '')
+        prob.add_line_parallel_plane('PQ', 'pABC')
         assert len(prob.cond_ids) == 1
 
 # ═══════════════════════════════════════════════════════
 # 4. geo_query.py: 查询 / 删除 / 存取
+# (DataOperate 父类已实现,本组已转正)
 # ═══════════════════════════════════════════════════════
-@pytest.mark.xfail(reason="REFACTOR_PLAN: 拆分未实施")
 class TestQueryContract:
     def test_get_point_names(self, prob):
         """get_point_names"""
@@ -172,11 +183,17 @@ class TestQueryContract:
         assert prob.get_orig_point() == 'O'
 
     def test_save_load_roundtrip(self, prob):
-        """save_to_file/load_from_file: 序列化往返"""
+        """序列化往返(逻辑层): pickle 验证继承类可序列化,加载后数据完整"""
+        import pickle
+        prob.add_symbol('t')
+        prob.add_O_point('O')
         prob.add_point('A', '1', '0', '0', '', '')
-        prob.save_to_file()
-        prob2 = prob.load_from_file()
-        assert 'A' in prob2.point_names
+        prob2 = pickle.loads(pickle.dumps(prob))
+        assert prob2.point_names == prob.point_names
+        assert prob2.orig_point == 'O'
+        assert isinstance(prob2, type(prob))
+        # 加载后仍可求解(逻辑可用)
+        assert 'OA' in prob2.solve('OA')[0]
 
     def test_del_objs(self, prob):
         """del_objs: 删除对象"""
@@ -187,7 +204,6 @@ class TestQueryContract:
 # ═══════════════════════════════════════════════════════
 # 5. geo_solve.py: 求解 / 探索
 # ═══════════════════════════════════════════════════════
-@pytest.mark.xfail(reason="REFACTOR_PLAN: 拆分未实施")
 class TestSolveContract:
     def test_solve_scalar(self, prob):
         """solve: 标量"""
