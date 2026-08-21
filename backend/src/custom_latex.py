@@ -19,7 +19,9 @@ import sympy
 class CustomLatexPrinter(LatexPrinter):
     def _print_Float(self, expr):
         '''新增小数处理'''
-        return '{:g}'.format(float(expr))
+        a = '{:.9g}'.format(float(expr))
+        n = a.replace('+','').split('e')
+        return n[0]+r' \times 10 ^ {'+n[1]+r'}' if 'e' in a else a
     def _print_MatrixBase(self, expr):
         # 列向量(只有 1 列)→ 圆括号坐标形式: \left( x, y, z \right)
         if expr.shape[1] == 1:

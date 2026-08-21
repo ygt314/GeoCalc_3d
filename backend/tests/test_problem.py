@@ -222,7 +222,8 @@ class TestExplore:
         prob.add_symbol('u')
         prob.add_symbol('v')
         result = prob.expore_extrema('u**2 + v**2', 'u v', custom=True)
-        assert '(0,0,0)' in result
+        # latex(tuple(ans)) 格式: \left( 0, \  0, \  0\right)
+        assert r'\left( 0, \  0, \  0\right)' in result
 
     def test_solution_key(self, prob):
         """用求解结果: AB=2 解出 t=±2, 探索常数无驻点(返回空集)"""
@@ -242,7 +243,8 @@ class TestExplore:
         prob.add_point('A', '0', '0', '0', '', '')
         prob.add_point('B', 't', '0', '0', '', '')
         result = prob.expore_extrema('AB**2', 't', custom=True)
-        assert '(0,0)' in result
+        # latex(tuple(ans)) 格式: \left( 0, \  0\right)
+        assert r'\left( 0, \  0\right)' in result
 
     def test_json_serializable(self, prob):
         """返回必须能 JSON 序列化(pywebview 桥接要求)"""
@@ -308,7 +310,7 @@ class TestExploreFunc:
         prob.add_symbol('t')
         result = prob.expore_func('t**2', {'t': '1 + sqrt(2)'}, custom=True)
         assert '\\sqrt{2}' in result  # 精确 latex 含根号
-        assert '5.82843' in result    # 浮点近似
+        assert '5.82843' in result or '5.82842712' in result  # 浮点近似(9g 精度)
 
     # ── 部分代入(新行为): 只代入部分变量,未代入的保留为符号 ──
 

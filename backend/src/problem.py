@@ -20,7 +20,7 @@ Problem 的职责（记住这张地图）
   - 新增 _get_plane（平面）、法向量、点面距离、体积等
   - 条件类型扩展：线面平行/垂直、面面平行/垂直、共面、异面、四面体体积…
 已知异常:
-- 设置实数不能确保Abs正常求解,因为sympy.solve内部可能无法正常论证子表达式具有实数属性,
+- 设置实数不能确保Abs,sqrt正常求解,因为sympy.solve内部可能无法正常论证(子)表达式具有实数属性,
 失误时会抛NotImplementedError
 """
 
@@ -28,10 +28,6 @@ from custom_latex import override_latex
 
 override_latex()
 from sympy.printing.str import StrPrinter
-# 暂时保留
-class GPrinter(StrPrinter):
-    def _print_Float(self, expr):
-        return '{:g}'.format(float(expr))
 
 from typing import Never, Optional, Callable
 import re
@@ -59,9 +55,12 @@ def expr_to_list(f: Expr|Matrix, choice: str=''):
     if choice == 'expr': return a if len(a)==1 else []
     elif choice == 'matrix': return [] if len(a)==1 else a
     return a
-def evalf_str(a:Expr):
-    printer = GPrinter()
-    return printer.doprint(a.evalf())
+
+def get_ans(a:Expr|Matrix, b=0):
+    '''关于 `sqrtdenest`: https://github.com/zhdbk3/GeometryCalculator/issues/5'''
+    if b == 1: return simplify(a)
+    elif b == 2: return sqrtdenest(a)
+    return simplify(sqrtdenest(a))
 # 新增z轴符号
 x = Symbol('x', real=True)
 y = Symbol('y', real=True)
@@ -225,7 +224,7 @@ class Problem:
     # 新增 3D 访问器
     # [improve_flag]暂时与2D一样使用（反）正余弦值
     def _get_plane_normal(self, name: str) -> Matrix:
-        """平面法向量，sympy会自动化简"""
+        """平面法向量"""
         return Matrix(self._get_plane(name[1:4]).normal_vector)
     
     def _get_angv(self, vv: str) -> Expr:
@@ -387,12 +386,10 @@ class Problem:
         if not solutions:
             return ["\\emptyset"]
         for sol in solutions:
-            # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-            values = [sqrtdenest(sol.get(x_i, x_i)) for x_i in xs]
+            values = [get_ans(sol.get(x_i, x_i)) for x_i in xs]
             # LaTeX 展示: (x1, y1, ...)
-            ans = values + [sqrtdenest(f.subs(sol))]
-            sol_str = ",".join(latex(i) for i in ans)
-            extrema.append(f'({sol_str})')
+            ans = values + [get_ans(f.subs(sol).expand())]
+            extrema.append(latex(tuple(ans)))
         print("[debug_get_extrema]:极值点列表")
         print(extrema)
         return extrema
@@ -691,8 +688,7 @@ class Problem:
         print('[debug]:未知数')
         print(symbols)
         solutions = solve(eqs, symbols, dict=True)
-        # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-        return set(tuple(simplify(sqrtdenest(s[tars[i]])) for i in range(d))
+        return set(tuple(get_ans(s[tars[i]]) for i in range(d))
                      for s in solutions
                      if tars[-1] in s)
 
@@ -723,7 +719,7 @@ class Problem:
         """
         left, right = to_raw_latex(expr), self._eval_str_expr(expr)
         exprs = expr_to_list(right,'matrix' if sure_vec else '')
-        if not exprs: return ['-_-’这不是向量。。。请圆润地回到标量！！！']
+        if not exprs: return ['-\\_-’这不是向量。。。请圆润地回到标量！！！']
 
         solutions = self._get_target(exprs)
         if not solutions: return ['无解：\\emptyset']
@@ -769,8 +765,7 @@ class Problem:
         for k, v in values.items():
             sym = symbols(k, real=True)
             sub_map[sym if isinstance(sym, Symbol) else sym[0]] = v
-        # 关于 ``sqrtdenest``：https://github.com/zhdbk3/GeometryCalculator/issues/5
-        ans = sqrtdenest(sss.subs(sub_map))
+        ans = get_ans(sss.subs(sub_map))
         print('values:',values)
         print("answer:",ans)
         return f"$ {latex(ans)} = {latex(ans.evalf())}$"
