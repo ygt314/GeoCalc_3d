@@ -1,7 +1,14 @@
 # problem.py 拆分计划(REFACTOR_PLAN)
 
-> 现状: `problem.py` 771 行,单文件承载全部逻辑(工具函数/装饰器/几何访问器/DSL/条件/查询/求解/探索)。
-> 目标: 按职责拆成 5 个模块,`Problem` 类本身保持单一入口(其他模块通过 mixin 方式挂到 Problem)。
+> **状态: 暂缓。** 已完成的拆分(dsl.py、data_op.py)保留;其余模块暂不拆。
+> 理由: 一个问题的完整求解周期(加点→条件→求解→探索)集中在 problem.py,
+> 便于维护;以后实在太多再拆。
+>
+> 现状: `problem.py` 583 行(原 771 行),单文件承载求解周期全部逻辑。
+> 契约测试 tests/test_refactor_contract.py 中:
+> - 已转正: TestGeoToolsContract、TestQueryContract(dsl.py/data_op.py 真实完成)
+> - 暂缓待办: TestAccessorsContract、TestObjectsContract、TestSolveContract
+>   (方法仍在 problem.py,xfail 标记 = 未来若拆分时的安全网)
 
 ## 一、拆分方案
 

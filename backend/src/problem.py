@@ -32,7 +32,6 @@ from typing import Never, Optional, Callable
 
 import functools
 from abc import ABC, abstractmethod
-
 # 新增Plane，并为点线适配3D；删除Segment无用项，距离就是模长
 # 暂时新增asin适配线面所成角
 from sympy import Symbol, Expr, symbols, simplify, Eq, Line3D, solve, Point3D, Plane, Matrix, asin, acos, latex, Abs, sqrtdenest
