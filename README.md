@@ -20,47 +20,37 @@
 | 后端 | Python 3.12 + SymPy（符号计算）+ pywebview |
 | GUI | PyQt5 / QtWebEngine（Chromium 87） |
 | 前端 | Quasar (Vue 3) + KaTeX（公式渲染） |
-| 测试 | pytest（81 个单元测试全绿） |
+| 测试 | pytest（115 个单元测试全绿） |
 
-## 快速开始
+---
 
-### 依赖
+# 使用（普通用户）
 
-- Python 3.12（[uv](https://github.com/astral-sh/uv) 管理虚拟环境）
-- Node.js + npm
+> 不想碰代码？直接从 [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases) 下载打包好的程序即可。
 
-### 后端
+## WSL2 / Linux 用户
 
-```bash
-cd backend
-uv sync                # 创建 .venv 并安装依赖(sympy/pywebview/PyQt5)
-uv run pytest          # 运行全部单元测试
+Release 里下载分卷包（Gitee 单附件限制 100MB，产物拆成两个）：
+
+```
+GeoCalc3D-wsl2.tar.gz.aa
+GeoCalc3D-wsl2.tar.gz.ab
 ```
 
-### 前端（开发模式，热更新）
+**下载到同一目录后合并解压：**
 
 ```bash
-# 终端 1: 前端 dev server
-cd frontend && npm install && npm run dev   # http://localhost:9000
+# 合并两个分卷并解压
+cat GeoCalc3D-wsl2.tar.gz.aa GeoCalc3D-wsl2.tar.gz.ab | tar xzf -
+cd GeoCalc3D
 
-# 终端 2: 后端窗口(加载 dev server)
-cd backend && DISPLAY=:0 QT_QPA_PLATFORM=xcb .venv/bin/python src/main_dev.py
+# 运行（需要 WSLg 图形环境）
+export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
+./GeoCalc3D
 ```
 
-### 正式版（打包构建）
-
-```bash
-# 1. 构建前端(输出到 backend/src/ui)
-cd frontend && npm run build
-
-# 2. 修正资源路径(Quasar 绝对路径 → file:// 相对路径)
-cd backend && .venv/bin/python fix_ui_paths.py
-
-# 3. 启动正式版
-cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
-```
-
-> 注：GUI 需要图形环境（WSLg 下用 `DISPLAY=:0 QT_QPA_PLATFORM=xcb`）。
+> - 若 WSLg 未开启，先确认 Windows 版本 ≥ Win11 / Win10 21H2，`wsl --update` 后重启
+> - 双击运行也可以（如果文件管理器配置了 WSLg 关联）
 
 ## 使用说明
 
@@ -88,7 +78,57 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 | `xP` / `yP` / `zP` | 点 P 的坐标 |
 | `nABC` | 平面 ABC 的法向量 |
 
-## 打包
+### 示例题目
+
+[example_pkl/](example_pkl/) 目录存放示例题目（高考真题改编、个人测试等），应用内"从文件加载"即可体验，说明见 [example_pkl/README.md](example_pkl/README.md)。
+
+---
+
+# 开发（从源码构建）
+
+> 想改代码 / 学习实现？往下看。
+
+## 依赖
+
+- Python 3.12（[uv](https://github.com/astral-sh/uv) 管理虚拟环境）
+- Node.js + npm
+
+## 快速开始
+
+### 后端
+
+```bash
+cd backend
+uv sync                # 创建 .venv 并安装依赖(sympy/pywebview/PyQt5)
+uv run pytest          # 运行全部单元测试
+```
+
+### 前端（开发模式，热更新）
+
+```bash
+# 终端 1: 前端 dev server
+cd frontend && npm install && npm run dev   # http://localhost:9000
+
+# 终端 2: 后端窗口(加载 dev server)
+cd backend && DISPLAY=:0 QT_QPA_PLATFORM=xcb .venv/bin/python src/main_dev.py
+```
+
+### 正式版（源码运行）
+
+```bash
+# 1. 构建前端(输出到 backend/src/ui)
+cd frontend && npm run build
+
+# 2. 修正资源路径(Quasar 绝对路径 → file:// 相对路径)
+cd backend && .venv/bin/python fix_ui_paths.py
+
+# 3. 启动正式版
+cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
+```
+
+> 注：GUI 需要图形环境（WSLg 下用 `DISPLAY=:0 QT_QPA_PLATFORM=xcb`）。
+
+## 打包（生成发布产物）
 
 支持 Windows 与 WSL2，详细步骤见 [backend/PACKAGING.md](backend/PACKAGING.md)。
 
@@ -102,6 +142,7 @@ pyinstaller GeoCalc3D.spec
 ```
 
 > 打包入口只有 `GeoCalc3D.spec`；dist/build 产物不入库，每个开发者按自己的环境打包。
+> 发布时若产物 > 100MB（Gitee 单附件限制），分卷压缩：`tar czf - GeoCalc3D/ | split -b 90m - GeoCalc3D-wsl2.tar.gz.`
 
 ## 测试
 
@@ -114,10 +155,6 @@ uv run python tests/run_all.py # 集中验证入口
 ```
 
 详见 [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md)。
-
-## 示例题目
-
-[example_pkl/](example_pkl/) 目录存放示例题目（2020/2025 高考真题改编、个人测试等），应用内"从文件加载"即可体验，说明见 [example_pkl/README.md](example_pkl/README.md)。
 
 ## 版本历史
 
