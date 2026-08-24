@@ -6,11 +6,13 @@ requires-python = ">=3.12"
 dependencies = [
     "pywebview>=6.0",
     "sympy>=1.14.0",
-    # GUI 后端(与 2D 原版一致:PyQt5 + QtWebEngine,Chromium 87)
-    # 注意:Chromium 87 不支持 ES2022 API,前端 index.html 已加 polyfill
-    "PyQt5==5.15.11",
-    "PyQtWebEngine==5.15.7",
     "qtpy>=2.4",
+    # GUI 后端按平台条件安装:
+    # - Windows: 用系统自带的 EdgeChromium(WebView2),零 Qt 依赖
+    # - 其他(Linux/WSL2): PyQt5 + QtWebEngine(Chromium 87,需 polyfill)
+    # 注意: Chromium 87 不支持 ES2022 API,前端 index.html 已加 polyfill
+    "PyQt5==5.15.11; sys_platform != 'win32'",
+    "PyQtWebEngine==5.15.7; sys_platform != 'win32'",
 ]
 
 [dependency-groups]

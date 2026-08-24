@@ -54,11 +54,14 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # 排除 2D 原版可能带进来的无关 GUI 后端
+        # 排除无关 GUI 后端
+        # Windows: 保留 edgechromium(WebView2),排除 PyQt
+        # Linux(WSL2): 保留 qt,排除 edgechromium
         'webview.platforms.gtk',
         'webview.platforms.cocoa',
         'webview.platforms.winforms',
-        'webview.platforms.edgechromium',
+        *(['PyQt5', 'PyQtWebEngine', 'webview.platforms.winforms'] if is_windows
+          else ['webview.platforms.edgechromium']),
     ],
     noarchive=False,
     optimize=0,
