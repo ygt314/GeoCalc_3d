@@ -88,6 +88,21 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 | `xP` / `yP` / `zP` | 点 P 的坐标 |
 | `nABC` | 平面 ABC 的法向量 |
 
+## 打包
+
+支持 Windows 与 WSL2，详细步骤见 [backend/PACKAGING.md](backend/PACKAGING.md)。
+
+```bash
+# 1. 构建前端
+cd frontend && npm install && npm run build
+# 2. 打包(产物在 backend/dist/GeoCalc3D/)
+cd backend
+uv pip install pyinstaller
+pyinstaller GeoCalc3D.spec
+```
+
+> 打包入口只有 `GeoCalc3D.spec`；dist/build 产物不入库，每个开发者按自己的环境打包。
+
 ## 测试
 
 ```bash

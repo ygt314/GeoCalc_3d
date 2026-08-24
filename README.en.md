@@ -88,6 +88,21 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 | `xP` / `yP` / `zP` | coordinates of point P |
 | `nABC` | normal vector of plane ABC |
 
+## Packaging
+
+Supports Windows and WSL2. Full guide: [backend/PACKAGING.md](backend/PACKAGING.md).
+
+```bash
+# 1. Build the frontend
+cd frontend && npm install && npm run build
+# 2. Package (output in backend/dist/GeoCalc3D/)
+cd backend
+uv pip install pyinstaller
+pyinstaller GeoCalc3D.spec
+```
+
+> `GeoCalc3D.spec` is the only packaging entry point; dist/build outputs are not committed — each developer packages in their own environment.
+
 ## Testing
 
 ```bash
