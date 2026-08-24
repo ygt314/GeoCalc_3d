@@ -17,7 +17,7 @@
 
 | 层 | 技术 |
 |---|---|
-| 后端 | Python 3.12 + SymPy（符号计算）+ pywebview |
+| 后端 | Python 3.12+（Windows 支持最新版,Linux 需 3.12）+ SymPy + pywebview |
 | GUI | PyQt5 / QtWebEngine（Chromium 87） |
 | 前端 | Quasar (Vue 3) + KaTeX（公式渲染） |
 | 测试 | pytest（115 个单元测试全绿） |
@@ -111,7 +111,10 @@ git clone https://gitee.com/ygt314159/GeoCalc_3d.git
 
 ## 依赖
 
-- Python 3.12（[uv](https://github.com/astral-sh/uv) 管理虚拟环境）
+- Python（[uv](https://github.com/astral-sh/uv) 管理虚拟环境）
+  - **Windows (10/11)**:支持**最新版 Python**(实测 3.14)运行与打包
+    —— 使用系统自带 WebView2,零 Qt 依赖,不受 PyQt5 版本限制
+  - **WSL2/Linux**:需 **Python 3.12** —— 依赖 PyQt5(5.15.11 无 3.13+ wheel)
 - Node.js + npm
 
 ## 快速开始

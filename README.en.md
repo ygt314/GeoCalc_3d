@@ -17,7 +17,7 @@ It turns high-school solid geometry (points, lines, planes, vectors, distances, 
 
 | Layer | Tech |
 |---|---|
-| Backend | Python 3.12 + SymPy (symbolic) + pywebview |
+| Backend | Python 3.12+ (Windows: latest OK; Linux: 3.12) + SymPy + pywebview |
 | GUI | PyQt5 / QtWebEngine (Chromium 87) |
 | Frontend | Quasar (Vue 3) + KaTeX (formula rendering) |
 | Tests | pytest (115 unit tests green) |
@@ -111,7 +111,10 @@ git clone https://gitee.com/ygt314159/GeoCalc_3d.git
 
 ## Prerequisites
 
-- Python 3.12 ([uv](https://github.com/astral-sh/uv) manages the venv)
+- Python ([uv](https://github.com/astral-sh/uv) manages the venv)
+  - **Windows (10/11)**: supports the **latest Python** (tested with 3.14) for running & packaging
+    — uses the built-in WebView2, zero Qt dependency, not limited by PyQt5
+  - **WSL2/Linux**: needs **Python 3.12** — depends on PyQt5 (5.15.11 has no 3.13+ wheels)
 - Node.js + npm
 
 ## Quick Start
