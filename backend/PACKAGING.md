@@ -43,8 +43,9 @@ cd backend
 |---|---|
 | 程序主体 | main.py → GeoCalc3D 可执行文件 |
 | 前端界面 | ui/(index.html + assets/) 打进包 |
-| 示例题目 | example_pkl/(GC1/GC2 高考真题 + 文档) |
 | 日志 | 运行目录自动创建 log/ |
+
+> 示例题目(example_pkl/)**不打包进程序** —— 用户在运行时通过"从文件加载"自行选择,需要时从仓库获取即可。
 
 ## 常见问题
 

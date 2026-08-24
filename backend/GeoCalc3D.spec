@@ -28,7 +28,6 @@ from pathlib import Path
 # 注意: PyInstaller 的 SPECPATH 就是 spec 所在目录(backend/),不是文件路径!
 SPEC_DIR = Path(SPECPATH)                                   # backend/
 SRC = SPEC_DIR / 'src'                                      # backend/src/
-PROJECT = SPEC_DIR.parent                                   # 项目根(含 example_pkl/)
 
 # 平台判断: Windows 打包 exe,Linux(WSL2)打包 ELF
 is_windows = sys.platform.startswith('win')
@@ -40,8 +39,8 @@ a = Analysis(
     datas=[
         # 前端构建产物(相对路径引用 assets/)
         (str(SRC / 'ui'), 'ui'),
-        # 示例题目(高考真题 pkl + 引导文档)
-        (str(PROJECT / 'example_pkl'), 'example_pkl'),
+        # 示例题目不打包进程序(用户运行时自己"从文件加载"),
+        # 由发布流程单独放进 tar.gz/zip,见 PACKAGING.md
     ],
     hiddenimports=[
         # pywebview 平台后端(自动探测,显式列出保险)

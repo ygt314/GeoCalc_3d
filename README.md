@@ -80,7 +80,15 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 ### 示例题目
 
-[example_pkl/](example_pkl/) 目录存放示例题目（高考真题改编、个人测试等），应用内"从文件加载"即可体验，说明见 [example_pkl/README.md](example_pkl/README.md)。
+示例题目不在打包产物内,需要时从仓库获取:
+
+```bash
+# 克隆仓库(或单独下载 example_pkl/ 目录)
+git clone https://gitee.com/ygt314159/GeoCalc_3d.git
+# 应用内"从文件加载"选择 example_pkl/ 下的 .gc.pkl
+```
+
+[example_pkl/](example_pkl/) 目录存放示例题目（高考真题改编、个人测试等），说明见 [example_pkl/README.md](example_pkl/README.md)。
 
 ---
 

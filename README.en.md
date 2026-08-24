@@ -80,7 +80,15 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 ### Sample Problems
 
-[example_pkl/](example_pkl/) holds sample problems (Gaokao variants, personal tests, etc.). Load them via "Load from file" in the app; see [example_pkl/README.md](example_pkl/README.md).
+Sample problems are not bundled in the package; get them from the repo when needed:
+
+```bash
+# Clone the repo (or download just the example_pkl/ directory)
+git clone https://gitee.com/ygt314159/GeoCalc_3d.git
+# In the app, "Load from file" and pick a .gc.pkl under example_pkl/
+```
+
+[example_pkl/](example_pkl/) holds sample problems (Gaokao variants, personal tests, etc.); see [example_pkl/README.md](example_pkl/README.md).
 
 ---
 

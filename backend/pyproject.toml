@@ -18,6 +18,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    # 打包工具(装进项目 venv,pyinstaller 才能收集到 PyQt5)
+    "pyinstaller>=6.0",
 ]
 
 [tool.pytest.ini_options]
