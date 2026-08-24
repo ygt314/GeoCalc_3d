@@ -27,15 +27,22 @@ cd backend
 ### Windows(原生 exe)
 
 - 在 **Windows 上** 执行打包(不能跨平台交叉编译)
-- 需先装 Python 3.12 + uv,重复上面的准备步骤
+- 需先装 Python + uv,重复上面的准备步骤
+- **Python 版本**:任意较新版本均可(实测 Python 3.14 打包成功并正常运行)
+  —— Windows 版用系统自带 WebView2,**零 Qt 依赖**,不受 PyQt5 版本限制
 - 产物 `dist/GeoCalc3D/GeoCalc3D.exe`,整个目录拷走即用
-- QtWebEngine 需要完整目录(PyQt5 的 QtWebEngineProcess 等),**不要用 --onefile 单文件**
+- (可选)用 Inno Setup 制作安装程序 `geocalc3d.exe`
 
 ### WSL2(Linux)
 
 - 在 WSL2 里打包出 Linux ELF 可执行文件
+- **Python 版本**:3.12(实测正常;3.14 未尝试)
+  —— Linux 版依赖 PyQt5,而 PyQt5 5.15.11 没有 3.13+ 的 wheel,只能 3.12
 - 运行需要 WSLg:先 `export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=xcb`
 - 运行 `./dist/GeoCalc3D/GeoCalc3D`
+
+> **版本差异原因**:两平台 GUI 后端不同 —— Windows 用 WebView2(系统自带,任何 Python 都行),
+> Linux 用 PyQt5(锁 3.12)。这是 pyproject 里平台条件依赖(`sys_platform != 'win32'`)的体现。
 
 ## 打包内容
 
