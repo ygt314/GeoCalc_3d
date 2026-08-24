@@ -28,6 +28,19 @@
 
 > 不想碰代码？直接从 [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases) 下载打包好的程序即可。
 
+## Windows 用户
+
+Release 里下载由 **Inno Setup** 制作的安装程序：
+
+```
+geocalc3d.exe
+```
+
+**双击安装**，装完从开始菜单/桌面快捷方式启动即可。
+
+> - 需要 Windows 10/11（64 位），程序使用系统自带的 WebView2 运行时（Windows 10/11 自带）
+> - 无需安装 Python 或任何依赖
+
 ## WSL2 / Linux 用户
 
 Release 里下载分卷包（Gitee 单附件限制 100MB，产物拆成两个）：
@@ -138,19 +151,33 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 
 ## 打包（生成发布产物）
 
-支持 Windows 与 WSL2，详细步骤见 [backend/PACKAGING.md](backend/PACKAGING.md)。
+支持 **Windows** 与 **WSL2/Linux**，详细步骤见 [backend/PACKAGING.md](backend/PACKAGING.md)。
+
+### Windows（.exe + 安装包）
 
 ```bash
 # 1. 构建前端
 cd frontend && npm install && npm run build
-# 2. 打包(产物在 backend/dist/GeoCalc3D/)
+# 2. PyInstaller 打包(在 Windows 上执行,产物 backend/dist/GeoCalc3D/)
 cd backend
-uv pip install pyinstaller
+uv sync && uv pip install pyinstaller
 pyinstaller GeoCalc3D.spec
+# 3. (可选)用 Inno Setup 制作安装程序 geocalc3d.exe(见 PACKAGING.md)
+```
+
+> Windows 版使用系统自带 WebView2,产物不含 Qt,体积小
+
+### WSL2 / Linux（分卷压缩包）
+
+```bash
+# 1-2. 同上构建前端 + PyInstaller 打包(在 WSL2 上执行)
+# 3. 分卷压缩(Gitee 单附件限 100MB)
+cd backend/dist
+tar czf - GeoCalc3D/ | split -b 90m - GeoCalc3D-wsl2.tar.gz.
+# 产物: GeoCalc3D-wsl2.tar.gz.aa + .ab,用户合并解压即用
 ```
 
 > 打包入口只有 `GeoCalc3D.spec`；dist/build 产物不入库，每个开发者按自己的环境打包。
-> 发布时若产物 > 100MB（Gitee 单附件限制），分卷压缩：`tar czf - GeoCalc3D/ | split -b 90m - GeoCalc3D-wsl2.tar.gz.`
 
 ## 测试
 
@@ -164,7 +191,7 @@ uv run python tests/run_all.py # 集中验证入口
 
 详见 [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md)。
 
-## 版本历史
+## 重大版本历史
 
 | 版本 | 说明 |
 |---|---|

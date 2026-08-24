@@ -28,6 +28,19 @@ It turns high-school solid geometry (points, lines, planes, vectors, distances, 
 
 > Don't want to touch code? Download the packaged program from [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases).
 
+## Windows Users
+
+Download the installer made with **Inno Setup** from Release:
+
+```
+geocalc3d.exe
+```
+
+**Double-click to install**, then launch from Start Menu / desktop shortcut.
+
+> - Requires Windows 10/11 (64-bit); uses the built-in WebView2 runtime
+> - No Python or any dependencies needed
+
 ## WSL2 / Linux Users
 
 Download the split archives from Release (Gitee limits single attachments to 100MB, so the bundle is split into two):
@@ -138,19 +151,33 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 
 ## Packaging (build release artifacts)
 
-Supports Windows and WSL2. Full guide: [backend/PACKAGING.md](backend/PACKAGING.md).
+Supports **Windows** and **WSL2/Linux**. Full guide: [backend/PACKAGING.md](backend/PACKAGING.md).
+
+### Windows (.exe + installer)
 
 ```bash
 # 1. Build the frontend
 cd frontend && npm install && npm run build
-# 2. Package (output in backend/dist/GeoCalc3D/)
+# 2. PyInstaller package (run on Windows, output backend/dist/GeoCalc3D/)
 cd backend
-uv pip install pyinstaller
+uv sync && uv pip install pyinstaller
 pyinstaller GeoCalc3D.spec
+# 3. (optional) Build installer geocalc3d.exe with Inno Setup (see PACKAGING.md)
+```
+
+> Windows build uses the built-in WebView2 — no Qt bundled, small size
+
+### WSL2 / Linux (split archives)
+
+```bash
+# 1-2. Same as above: build frontend + PyInstaller package (run on WSL2)
+# 3. Split into parts (Gitee limits single attachments to 100MB)
+cd backend/dist
+tar czf - GeoCalc3D/ | split -b 90m - GeoCalc3D-wsl2.tar.gz.
+# Output: GeoCalc3D-wsl2.tar.gz.aa + .ab — users merge & extract to use
 ```
 
 > `GeoCalc3D.spec` is the only packaging entry point; dist/build outputs are not committed — each developer packages in their own environment.
-> When publishing, if the bundle > 100MB (Gitee attachment limit), split it: `tar czf - GeoCalc3D/ | split -b 90m - GeoCalc3D-wsl2.tar.gz.`
 
 ## Testing
 
@@ -164,7 +191,7 @@ uv run python tests/run_all.py # centralized runner
 
 See [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md).
 
-## Version History
+## Major Version History
 
 | Version | Description |
 |---|---|
