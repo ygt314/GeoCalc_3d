@@ -26,12 +26,8 @@ else:
     ui_path = os.path.join(os.path.dirname(__file__), 'ui', 'index.html')
 
 window = webview.create_window('3D几何计算器', ui_path, js_api=api, maximized=True)
-# GUI 后端按平台选择:
-# - Windows: 不指定(自动用 WebView2/EdgeChromium,系统自带,零 Qt 依赖)
-#   注意: 显式 gui='edgechromium' 会触发 pywebview 的 winforms 分支
-#   要求 pythonnet,反而报错
-# - 其他(Linux/WSL2): Qt(PyQt5)。打包后 GTK 平台不可用,不指定会探测失败退出
-if sys.platform.startswith('win'):
-    webview.start()
-else:
-    webview.start(gui='qt')
+# GUI 后端由 pywebview 自动适配:
+# - Windows: 自动用 WebView2(经 winforms 内部导入 edgechromium),零 Qt 依赖
+# - Linux/WSL2: 自动探测 GTK → 失败后 fallback 到 Qt(PyQt5)
+# 不显式指定,避免触发 winforms 分支(需 pythonnet)或 GTK 探测问题
+webview.start()

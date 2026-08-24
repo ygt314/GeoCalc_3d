@@ -56,14 +56,10 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # 排除无关 GUI 后端
-        # Windows: 保留 winforms + edgechromium(WebView2 经 winforms 导入),
-        #          排除 PyQt(零 Qt 依赖)
-        # Linux(WSL2): 保留 qt,排除 gtk/cocoa/winforms/edgechromium
-        'webview.platforms.gtk',
-        'webview.platforms.cocoa',
-        *(['PyQt5', 'PyQtWebEngine'] if is_windows
-          else ['webview.platforms.winforms', 'webview.platforms.edgechromium']),
+        # GUI 后端由 pywebview 自动适配,保留所有平台模块:
+        # - Windows: winforms → edgechromium(WebView2)
+        # - Linux/WSL2: gtk(失败) → qt
+        # 不排除任何平台后端(排除会导致探测链断裂)
     ],
     noarchive=False,
     optimize=0,
