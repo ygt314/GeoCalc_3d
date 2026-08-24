@@ -45,6 +45,9 @@ a = Analysis(
     hiddenimports=[
         # pywebview 平台后端(自动探测,显式列出保险)
         'webview.platforms.qt',
+        # Windows WebView2 链路(winforms 内部导入 edgechromium)
+        'webview.platforms.winforms',
+        'webview.platforms.edgechromium',
         # 数据层模块(import 链已在 main→api→problem 覆盖,补显式)
         'data.dsl',
         'data_op',
@@ -54,13 +57,13 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[
         # 排除无关 GUI 后端
-        # Windows: 保留 edgechromium(WebView2),排除 PyQt
-        # Linux(WSL2): 保留 qt,排除 edgechromium
+        # Windows: 保留 winforms + edgechromium(WebView2 经 winforms 导入),
+        #          排除 PyQt(零 Qt 依赖)
+        # Linux(WSL2): 保留 qt,排除 gtk/cocoa/winforms/edgechromium
         'webview.platforms.gtk',
         'webview.platforms.cocoa',
-        'webview.platforms.winforms',
-        *(['PyQt5', 'PyQtWebEngine', 'webview.platforms.winforms'] if is_windows
-          else ['webview.platforms.edgechromium']),
+        *(['PyQt5', 'PyQtWebEngine'] if is_windows
+          else ['webview.platforms.winforms', 'webview.platforms.edgechromium']),
     ],
     noarchive=False,
     optimize=0,

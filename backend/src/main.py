@@ -27,7 +27,11 @@ else:
 
 window = webview.create_window('3D几何计算器', ui_path, js_api=api, maximized=True)
 # GUI 后端按平台选择:
-# - Windows: 系统自带的 EdgeChromium(WebView2),零 Qt 依赖
+# - Windows: 不指定(自动用 WebView2/EdgeChromium,系统自带,零 Qt 依赖)
+#   注意: 显式 gui='edgechromium' 会触发 pywebview 的 winforms 分支
+#   要求 pythonnet,反而报错
 # - 其他(Linux/WSL2): Qt(PyQt5)。打包后 GTK 平台不可用,不指定会探测失败退出
-gui_backend = 'edgechromium' if sys.platform.startswith('win') else 'qt'
-webview.start(gui=gui_backend)
+if sys.platform.startswith('win'):
+    webview.start()
+else:
+    webview.start(gui='qt')
