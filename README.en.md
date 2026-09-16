@@ -26,7 +26,7 @@ It turns high-school solid geometry (points, lines, planes, vectors, distances, 
 
 # Usage (end users)
 
-> Don't want to touch code? Download the packaged program from [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases).
+> Don't want to touch code? Download the packaged program from [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases) — supports **Windows**, **WSL2 / Linux**, and **Android (QPython)**.
 
 ## Windows Users
 
@@ -64,6 +64,24 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 > - If WSLg isn't enabled: ensure Windows ≥ Win11 / Win10 21H2, `wsl --update` and restart
 > - Double-click also works if your file manager has WSLg association
+
+## Android / QPython Users
+
+> All you need is an Android phone: no root, no PC. The [QPython](https://www.qpython.com/) build runs the backend on-device and renders the UI in QPython's built-in WebView.
+
+Download **`geocalc.zip`** from the [v1.3.1.qpy](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpy) release. It bundles **two apps**: **plane geometry (`geocalc_2d`)** and **solid geometry (`geocalc_3d`)**.
+
+1. **Dependencies**: install `sympy` inside QPython (the `bottle` web server is usually shipped with QPython; install it too if QPython reports it missing).
+2. **Copy into the project dir**: open `geocalc.zip` with MT Manager and **enter the archive**, then copy both the `geocalc_2d` and `geocalc_3d` folders into QPython's project directory:
+   ```
+   /sdcard/Android/data/org.qpython.qpy/files/projects3/
+   ```
+3. **Run**: open QPython → tap the logo at the top to open the project list → pick `geocalc_2d` (plane) or `geocalc_3d` (solid). The app starts a local server and opens the WebView; **press Back to stop**.
+
+> - Local ports: **8080 (2D) / 8081 (3D)**; the UI is the exact same frontend build as the desktop versions.
+> - QPython's bundled Python and Termux's Python are separate environments — install dependencies in each.
+> - Solving relies on SymPy; phones are slower than desktops on heavy problems.
+> - Ran into a problem? Open an [issue](https://gitee.com/ygt314159/GeoCalc_3d/issues) (include your phone model + QPython version to help us reproduce).
 
 ## Usage
 
@@ -202,6 +220,8 @@ See [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md).
 | v1.1.0 | DSL support for spatial solids (plane / tetrahedron / frustum, etc.) |
 | v1.2.0 | Function value & extrema exploration |
 | v1.3.0 | Vector solving support |
+| v1.3.1 | Packaging & release: Windows installer (Inno), WSL2 split archives |
+| v1.3.1.qpy | Android QPython build (plane + solid, no root) |
 
 ## License
 

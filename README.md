@@ -26,7 +26,7 @@
 
 # 使用（普通用户）
 
-> 不想碰代码？直接从 [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases) 下载打包好的程序即可。
+> 不想碰代码？直接从 [Releases](https://gitee.com/ygt314159/GeoCalc_3d/releases) 下载打包好的程序即可 —— 支持 **Windows**、**WSL2 / Linux** 与 **安卓（QPython）**。
 
 ## Windows 用户
 
@@ -64,6 +64,24 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 > - 若 WSLg 未开启，先确认 Windows 版本 ≥ Win11 / Win10 21H2，`wsl --update` 后重启
 > - 双击运行也可以（如果文件管理器配置了 WSLg 关联）
+
+## 安卓 / QPython 用户
+
+> 只需一台安卓手机：无需 root，也无需电脑。[QPython](https://www.qpython.com/) 版把后端跑在手机上，用内置 WebView 显示界面。
+
+下载 [v1.3.1.qpy](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpy) 里的 **`geocalc.zip`**，包内同时包含两个应用：**平面几何 `geocalc_2d`** 与 **立体几何 `geocalc_3d`**。
+
+1. **准备依赖**：在 QPython 中安装 `sympy`（本地 HTTP 服务用的 `bottle` 一般已随 QPython 提供，若提示缺失再一并安装）。
+2. **拷进项目目录**：用 MT 管理器打开 `geocalc.zip` 并**进入压缩包内部**，全选 `geocalc_2d`、`geocalc_3d` 两个目录，复制到 QPython 的项目目录：
+   ```
+   /sdcard/Android/data/org.qpython.qpy/files/projects3/
+   ```
+3. **运行**：打开 QPython → 点顶部 logo 进入项目列表 → 选 `geocalc_2d`（平面几何）或 `geocalc_3d`（立体几何）。程序会自动启动本地服务并打开 WebView；**按返回键即结束运行**。
+
+> - 本地服务端口：**8080（2D）/ 8081（3D）**，界面就是桌面版同一套前端产物。
+> - QPython 自带的 Python 与 Termux 的 Python 是两套独立环境，依赖各自安装。
+> - 求解依赖 SymPy，手机性能有限，复杂题目会比桌面慢一些。
+> - 遇到问题欢迎到 [Issues](https://gitee.com/ygt314159/GeoCalc_3d/issues) 反馈（附手机型号 + QPython 版本更好定位）。
 
 ## 使用说明
 
@@ -202,6 +220,8 @@ uv run python tests/run_all.py # 集中验证入口
 | v1.1.0 | DSL 语法空间体支持（平面/四面体/三棱台等） |
 | v1.2.0 | 函数值探索、极值探索上线 |
 | v1.3.0 | 向量求解支持 |
+| v1.3.1 | 打包与发布：Windows 安装包（Inno）、WSL2 分卷包 |
+| v1.3.1.qpy | 安卓 QPython 版（平面 + 立体双项目，免 root） |
 
 ## 许可证
 
