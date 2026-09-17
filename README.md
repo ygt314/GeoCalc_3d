@@ -69,7 +69,7 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 > 只需一台安卓手机：无需 root，也无需电脑。[QPython](https://www.qpython.com/) 版把后端跑在手机上，用内置 WebView 显示界面。
 
-下载 [v1.3.1.qpy](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpy) 里的 **`geocalc.zip`**，包内同时包含两个应用：**平面几何 `geocalc_2d`** 与 **立体几何 `geocalc_3d`**。
+下载 [v1.3.1.qpython](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpython) 里的 **`geocalc.zip`**，包内同时包含两个应用：**平面几何 `geocalc_2d`** 与 **立体几何 `geocalc_3d`**。
 
 1. **准备依赖**：在 QPython 中安装 `sympy`（本地 HTTP 服务用的 `bottle` 一般已随 QPython 提供，若提示缺失再一并安装）。
 2. **拷进项目目录**：用 MT 管理器打开 `geocalc.zip` 并**进入压缩包内部**，全选 `geocalc_2d`、`geocalc_3d` 两个目录，复制到 QPython 的项目目录：
@@ -221,7 +221,7 @@ uv run python tests/run_all.py # 集中验证入口
 | v1.2.0 | 函数值探索、极值探索上线 |
 | v1.3.0 | 向量求解支持 |
 | v1.3.1 | 打包与发布：Windows 安装包（Inno）、WSL2 分卷包 |
-| v1.3.1.qpy | 安卓 QPython 版（平面 + 立体双项目，免 root） |
+| v1.3.1.qpython | 安卓 QPython 版（平面 + 立体双项目，免 root） |
 
 ## 许可证
 

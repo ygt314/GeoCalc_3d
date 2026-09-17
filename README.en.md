@@ -69,7 +69,7 @@ export DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
 
 > All you need is an Android phone: no root, no PC. The [QPython](https://www.qpython.com/) build runs the backend on-device and renders the UI in QPython's built-in WebView.
 
-Download **`geocalc.zip`** from the [v1.3.1.qpy](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpy) release. It bundles **two apps**: **plane geometry (`geocalc_2d`)** and **solid geometry (`geocalc_3d`)**.
+Download **`geocalc.zip`** from the [v1.3.1.qpython](https://gitee.com/ygt314159/GeoCalc_3d/releases/tag/v1.3.1.qpython) release. It bundles **two apps**: **plane geometry (`geocalc_2d`)** and **solid geometry (`geocalc_3d`)**.
 
 1. **Dependencies**: install `sympy` inside QPython (the `bottle` web server is usually shipped with QPython; install it too if QPython reports it missing).
 2. **Copy into the project dir**: open `geocalc.zip` with MT Manager and **enter the archive**, then copy both the `geocalc_2d` and `geocalc_3d` folders into QPython's project directory:
@@ -221,7 +221,7 @@ See [backend/TEST_LAYOUT.md](backend/TEST_LAYOUT.md).
 | v1.2.0 | Function value & extrema exploration |
 | v1.3.0 | Vector solving support |
 | v1.3.1 | Packaging & release: Windows installer (Inno), WSL2 split archives |
-| v1.3.1.qpy | Android QPython build (plane + solid, no root) |
+| v1.3.1.qpython | Android QPython build (plane + solid, no root) |
 
 ## License
 
