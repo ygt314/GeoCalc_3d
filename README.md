@@ -170,13 +170,13 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 
 > 注：GUI 需要图形环境（WSLg 下用 `DISPLAY=:0 QT_QPA_PLATFORM=xcb`）。
 
-## 安卓：Termux 与 QPython（后端 HTTP 化）
+## 在安卓上开发：Termux 与 QPython（后端 HTTP 化）
 
-> Android 上跑不了 pywebview：Termux 装不出可用的 WebEngine/Qt 后端，pywebview 本身也没有 headless 模式。所以安卓路线的后端要**去掉 pywebview 窗口、回退成纯 API 的 HTTP 服务**；前端产物**零改动**（注入 `ui_shim.js` 把 `window.pywebview.api.*` 映射到 HTTP `/api/*`）。
+> Android Termux(Qpython)上跑不了 pywebview：Termux 装不出可用的 WebEngine/Qt 后端，pywebview 本身也没有 headless 模式。所以安卓路线的后端要**去掉 pywebview 窗口、回退成纯 API 的 HTTP 服务**；前端产物**零改动**（注入 `ui_shim.js` 把 `window.pywebview.api.*` 映射到 HTTP `/api/*`）。
 
 **Termux 与 QPython 是两回事，别混：**
 
-- **Termux（终端）**：本项目在 Termux 里**只做前端开发与构建**（Node + pnpm）。后端跑不了 pywebview，只能以 HTTP 服务启动，再用外部浏览器 / `termux-open http://127.0.0.1:PORT` 打开——终端环境**调不到系统 WebView**。
+- **Termux（终端）**：本项目支持在 Termux 里进行**前端开发与构建**（Node + npm）。后端跑不了 pywebview，只能以 HTTP 服务启动，再用外部浏览器 / `termux-open http://127.0.0.1:PORT` 打开——终端环境**调不到系统 WebView**。
 - **QPython（App）**：自带 Python 运行时，且**能调用系统 WebView**。前端构建产物可以直接拷进 QPython 项目目录运行；入口 `main.py` 用 `#qpy:webapp:` 指令起 Bottle 服务，**服务就绪后 QPython 立即拉起内置浏览器（系统 WebView）**指向本地端口，体验接近原生窗口。
 
 | | Termux | QPython |

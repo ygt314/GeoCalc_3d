@@ -170,13 +170,13 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 
 > Note: GUI needs a display (WSLg: `DISPLAY=:0 QT_QPA_PLATFORM=xcb`).
 
-## Android: Termux vs QPython (HTTP-ified backend)
+## Developing on Android: Termux vs QPython (HTTP-ified backend)
 
-> pywebview can't run on Android: Termux can't build a usable WebEngine/Qt backend, and pywebview has no headless mode. So the Android path **drops the pywebview window and falls back to a plain HTTP API service**; the frontend build is **unchanged** (inject `ui_shim.js` to map `window.pywebview.api.*` onto HTTP `/api/*`).
+> pywebview can't run on Android Termux (QPython): Termux can't build a usable WebEngine/Qt backend, and pywebview has no headless mode. So the Android path **drops the pywebview window and falls back to a plain HTTP API service**; the frontend build is **unchanged** (inject `ui_shim.js` to map `window.pywebview.api.*` onto HTTP `/api/*`).
 
 **Termux and QPython are two different things — don't mix them up:**
 
-- **Termux (terminal)**: here the project is **frontend dev/build only** (Node + pnpm). The backend can't run pywebview, so it runs as an HTTP service opened via an external browser / `termux-open http://127.0.0.1:PORT` — the terminal environment **can't reach the system WebView**.
+- **Termux (terminal)**: the project supports **frontend development & build** in Termux (Node + npm). The backend can't run pywebview, so it runs as an HTTP service opened via an external browser / `termux-open http://127.0.0.1:PORT` — the terminal environment **can't reach the system WebView**.
 - **QPython (app)**: ships its own Python and **can drive the system WebView**. The frontend build can be dropped straight into a QPython project; the entry `main.py` starts Bottle via the `#qpy:webapp:` directive and, once the server is ready, QPython **immediately opens its built-in browser (system WebView)** at the local port — close to a native window.
 
 | | Termux | QPython |
