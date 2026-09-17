@@ -170,6 +170,24 @@ cd backend/src && DISPLAY=:0 QT_QPA_PLATFORM=xcb ../.venv/bin/python main.py
 
 > Note: GUI needs a display (WSLg: `DISPLAY=:0 QT_QPA_PLATFORM=xcb`).
 
+## Android: Termux vs QPython (HTTP-ified backend)
+
+> pywebview can't run on Android: Termux can't build a usable WebEngine/Qt backend, and pywebview has no headless mode. So the Android path **drops the pywebview window and falls back to a plain HTTP API service**; the frontend build is **unchanged** (inject `ui_shim.js` to map `window.pywebview.api.*` onto HTTP `/api/*`).
+
+**Termux and QPython are two different things — don't mix them up:**
+
+- **Termux (terminal)**: here the project is **frontend dev/build only** (Node + pnpm). The backend can't run pywebview, so it runs as an HTTP service opened via an external browser / `termux-open http://127.0.0.1:PORT` — the terminal environment **can't reach the system WebView**.
+- **QPython (app)**: ships its own Python and **can drive the system WebView**. The frontend build can be dropped straight into a QPython project; the entry `main.py` starts Bottle via the `#qpy:webapp:` directive and, once the server is ready, QPython **immediately opens its built-in browser (system WebView)** at the local port — close to a native window.
+
+| | Termux | QPython |
+|---|---|---|
+| Python | separate env (can't install a pywebview backend) | bundled; install `sympy`/`bottle` via QPyPI |
+| System WebView | ✗ (unreachable from terminal) | ✓ (auto-opened after Bottle starts) |
+| Backend | plain HTTP API service | plain HTTP API service (same `main.py`) |
+| Can do | frontend dev/build | run the full app |
+
+> The HTTP-ified backend entry is the in-package `main.py` (Bottle: serves `ui/` + `/api/<ns>/<method>` + `/api/file/save|load` + injects the shim); both environments share the same file — they only **display** differently: Termux opens a browser manually, QPython opens the WebView automatically. QPython ports: 2D = `8080`, 3D = `8081`.
+
 ## Packaging (build release artifacts)
 
 Supports **Windows** and **WSL2/Linux**. Full guide: [backend/PACKAGING.md](backend/PACKAGING.md).
